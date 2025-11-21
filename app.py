@@ -72,13 +72,12 @@ def create_app():
             resultado.append({
                 'id': inst.id,
                 'nombre': inst.nombre,
-                'direccion': inst.direccion
+                'direccion': inst.direccion,
+                'contacto': inst.contacto  # <--- ¡ESTA LÍNEA ES LA QUE FALTABA!
             })
         return jsonify(resultado)
 
-    # ¡ESTA ES LA LÍNEA QUE FALTABA! 
     return app
-
 # --- Configuración Global ---
 app = create_app()
 
