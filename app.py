@@ -1,10 +1,8 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask
 from flask_cors import CORS
 from database import db
 from config.config import ConfiguracionGlobal
-# Importamos el modelo para poder guardar cosas en la base de datos
-from models.instituciones import Institucion
 
 # Cargar .env
 try:
@@ -31,54 +29,30 @@ def create_app():
     db.init_app(app)
     ConfiguracionGlobal()
 
-    # Registrar Rutas (Blueprints de Adán si existen)
+    # --- AQUÍ REGISTRAMOS LOS DEPARTAMENTOS (Rutas) ---
+    
+    # 1. Rutas de Instituciones (La que acabas de crear)
+    try:
+        from routes.instituciones import instituciones_bp
+        app.register_blueprint(instituciones_bp)
+    except Exception as e:
+        print(f"Error importando instituciones: {e}")
+
+    # 2. Rutas de Estudiantes (Ejemplo para Adán)
     try:
         from routes.estudiantes import estudiantes_bp
         app.register_blueprint(estudiantes_bp)
     except Exception:
         pass
 
+    # --------------------------------------------------
+
     @app.route("/ping")
     def ping():
         return {"msg": "pong", "status": "ok"}
 
-    # --- RUTA PRINCIPAL (GET y POST) ---
-    @app.route('/api/instituciones', methods=['GET', 'POST'])
-    def gestionar_instituciones():
-        if request.method == 'POST':
-            # 1. Recibimos los datos que manda Postman
-            data = request.get_json()
-            
-            # 2. Creamos la nueva institución
-            try:
-                nueva_inst = Institucion(
-                    nombre=data.get('nombre'),
-                    direccion=data.get('direccion'),
-                    contacto=data.get('contacto')
-                )
-                
-                # 3. Guardamos en Base de Datos
-                db.session.add(nueva_inst)
-                db.session.commit()
-                
-                return jsonify({'mensaje': 'Institución creada con éxito', 'id': nueva_inst.id}), 201
-            except Exception as e:
-                return jsonify({'error': str(e)}), 500
-
-        # Si no es POST, entonces es GET (Devolver lista)
-        lista = Institucion.query.all()
-        resultado = []
-        for inst in lista:
-            resultado.append({
-                'id': inst.id,
-                'nombre': inst.nombre,
-                'direccion': inst.direccion,
-                'contacto': inst.contacto  # <--- ¡ESTA LÍNEA ES LA QUE FALTABA!
-            })
-        return jsonify(resultado)
-
     return app
-# --- Configuración Global ---
+
 app = create_app()
 
 with app.app_context():
