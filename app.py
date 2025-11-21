@@ -3,6 +3,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from database import db
 from config.config import ConfiguracionGlobal
+# Importamos el modelo para poder guardar cosas en la base de datos
+from models.instituciones import Institucion
 
 # Cargar .env
 try:
@@ -14,13 +16,12 @@ except ImportError:
 def create_app():
     app = Flask(__name__)
 
-    # Habilitar CORS para que Katy pueda conectarse
+    # Habilitar CORS
     CORS(app)
 
     # Configuración de Base de Datos
     db_uri = os.getenv('DATABASE_URL')
     if not db_uri:
-        # Fallback por si falla la variable de entorno
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///evaluacion.db'
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
@@ -30,7 +31,7 @@ def create_app():
     db.init_app(app)
     ConfiguracionGlobal()
 
-    # Registrar Rutas
+    # Registrar Rutas (Blueprints de Adán si existen)
     try:
         from routes.estudiantes import estudiantes_bp
         app.register_blueprint(estudiantes_bp)
@@ -40,11 +41,8 @@ def create_app():
     @app.route("/ping")
     def ping():
         return {"msg": "pong", "status": "ok"}
-    
-    # Agregamos ruta de prueba de instituciones
-    from flask import jsonify
-    from models.instituciones import Institucion
-    # Ruta inteligente: Sirve para LEER (GET) y CREAR (POST)
+
+    # --- RUTA PRINCIPAL (GET y POST) ---
     @app.route('/api/instituciones', methods=['GET', 'POST'])
     def gestionar_instituciones():
         if request.method == 'POST':
@@ -52,17 +50,20 @@ def create_app():
             data = request.get_json()
             
             # 2. Creamos la nueva institución
-            nueva_inst = Institucion(
-                nombre=data.get('nombre'),
-                direccion=data.get('direccion'),
-                contacto=data.get('contacto') # Asegúrate de que tu modelo tenga este campo, si no bórralo
-            )
-            
-            # 3. Guardamos en Base de Datos
-            db.session.add(nueva_inst)
-            db.session.commit()
-            
-            return jsonify({'mensaje': 'Institución creada con éxito', 'id': nueva_inst.id}), 201
+            try:
+                nueva_inst = Institucion(
+                    nombre=data.get('nombre'),
+                    direccion=data.get('direccion'),
+                    contacto=data.get('contacto')
+                )
+                
+                # 3. Guardamos en Base de Datos
+                db.session.add(nueva_inst)
+                db.session.commit()
+                
+                return jsonify({'mensaje': 'Institución creada con éxito', 'id': nueva_inst.id}), 201
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
 
         # Si no es POST, entonces es GET (Devolver lista)
         lista = Institucion.query.all()
@@ -75,6 +76,10 @@ def create_app():
             })
         return jsonify(resultado)
 
+    # ¡ESTA ES LA LÍNEA QUE FALTABA! 
+    return app
+
+# --- Configuración Global ---
 app = create_app()
 
 with app.app_context():
