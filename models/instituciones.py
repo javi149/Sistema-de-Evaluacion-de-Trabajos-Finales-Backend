@@ -7,6 +7,10 @@ class Institucion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(150), nullable=False)
     direccion = db.Column(db.String(255))
+    contacto = db.Column(db.String(255))
+
+    
     logo_url = db.Column(db.String(255))
 
     criterios = db.relationship("Criterio", back_populates="institucion")
+    
