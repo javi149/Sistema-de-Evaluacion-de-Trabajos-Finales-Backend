@@ -1,16 +1,12 @@
-# models/__init__.py
+from models.instituciones import Institucion
+from models.estudiantes import Estudiante
+from models.trabajos import Trabajo
+from models.actas import Acta
+from models.criterios import Criterio
+from models.evaluacion_detalle import EvaluacionDetalle
+from models.evaluaciones import Evaluacion
+from models.evaluadores import Evaluador
+from models.tipos_trabajo import TipoTrabajo
 
-# Importamos todos los modelos para que Flask y SQLAlchemy los reconozcan.
-# El orden no es estricto, pero ayuda a mantener el orden lógico.
-
-from .actas import Acta
-from .criterios import Criterio
-from .estudiantes import Estudiante
-from evaluacion_detalle import EvaluacionDetalle
-from .evaluaciones import Evaluacion
-from .evaluadores import Evaluador
-from .instituciones import Institucion
-from .tipos_trabajo import TipoTrabajo
-from .trabajos import Trabajo
-
-# Si en el futuro agregas más tablas, recuerda importarlas aquí.
+# Nota: Asumo que dentro del archivo 'evaluadores.py' la clase se llama 'Evaluador'
+# y en 'tipos_trabajo.py' se llama 'TipoTrabajo'. Si te da error de nombre, avísame.

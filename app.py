@@ -43,7 +43,7 @@ def create_app():
     
     # Agregamos ruta de prueba de instituciones
     from flask import jsonify
-    from models.institucion import Institucion
+    from models.instituciones import Institucion
     @app.route('/api/instituciones', methods=['GET'])
     def obtener_instituciones():
         try:
