@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app import db
+from database import db
 from models import Estudiante 
 
 estudiantes_bp = Blueprint('estudiantes', __name__, url_prefix='/estudiantes')
@@ -9,7 +9,7 @@ estudiantes_bp = Blueprint('estudiantes', __name__, url_prefix='/estudiantes')
 def listar_estudiantes():
     alumnos = Estudiante.query.all()
     resultado = [{
-        "id": a.estudiante_id, 
+        "id": a.id, 
         "nombre": a.nombre, 
         "apellido": a.apellido,
         "rut": a.rut,
@@ -31,7 +31,7 @@ def crear_estudiante():
     )
     db.session.add(nuevo)
     db.session.commit()
-    return jsonify({"mensaje": "Estudiante creado", "id": nuevo.estudiante_id}), 201
+    return jsonify({"mensaje": "Estudiante creado", "id": nuevo.id}), 201
 
 # ELIMINAR
 @estudiantes_bp.route('/<int:id>', methods=['DELETE'])
