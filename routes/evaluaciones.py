@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models import Evaluacion
-from datetime import datetime
 
 evaluaciones_bp = Blueprint('evaluaciones', __name__, url_prefix='/evaluaciones')
 
@@ -12,9 +11,8 @@ def listar_evaluaciones():
         "id": e.id,
         "trabajo_id": e.trabajo_id,
         "evaluador_id": e.evaluador_id,
-        "nota_final": e.nota_final,
-        "comentarios": e.comentarios,
-        "fecha_evaluacion": e.fecha_evaluacion.isoformat() if e.fecha_evaluacion else None
+        "nota_final": float(e.nota_final) if e.nota_final else None,
+        "comentarios": e.comentarios
     } for e in evaluaciones]
     return jsonify(resultado)
 
@@ -22,20 +20,20 @@ def listar_evaluaciones():
 def registrar_evaluacion():
     data = request.get_json()
     
-    fecha_evaluacion = None
-    if data.get('fecha_evaluacion'):
-        fecha_evaluacion = datetime.strptime(data.get('fecha_evaluacion'), '%Y-%m-%d').date()
-    elif not fecha_evaluacion:
-        fecha_evaluacion = datetime.now().date()
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    # Validaciones
+    if not data.get('trabajo_id'):
+        return jsonify({"error": "El trabajo_id es requerido"}), 400
     
     nueva = Evaluacion(
         trabajo_id=data.get('trabajo_id'),
         evaluador_id=data.get('evaluador_id'),
         nota_final=data.get('nota_final'),
-        comentarios=data.get('comentarios'),
-        fecha_evaluacion=fecha_evaluacion
+        comentarios=data.get('comentarios')
     )
     
     db.session.add(nueva)
     db.session.commit()
-    return jsonify({"mensaje": "Evaluación registrada", "id": nueva.id}), 201
+    return jsonify({"mensaje": "Evaluación registrada exitosamente", "id": nueva.id}), 201

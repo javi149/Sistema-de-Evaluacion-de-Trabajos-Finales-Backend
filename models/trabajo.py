@@ -1,13 +1,18 @@
 from database import db
+from sqlalchemy.schema import ForeignKey
 
+# Columna: titulo, tipo_id (FK), estudiante_id (FK), resumen, fecha_entrega
 class Trabajo(db.Model):
     __tablename__ = 'trabajos'
     id = db.Column(db.Integer, primary_key=True)
-    titulo = db.Column(db.String(200))
-    tipo = db.Column(db.String(100)) # Tesis, Proyecto, etc.
-    estado = db.Column(db.String(50), default='PENDIENTE')
-    fecha_entrega = db.Column(db.Date)
-    estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'))
+    titulo = db.Column(db.String(200), nullable=False)
+    duracion_meses = db.Column(db.Integer)
+    nota_aprobacion = db.Column(db.Float)
+    requisito_aprobacion = db.Column(db.String(255))
     
-    # Relación con Estudiante
-    estudiante = db.relationship('Estudiante', backref='trabajos')
+    # Relaciones (Foreign Keys)
+    tipo_id = db.Column(db.Integer, ForeignKey('tipos_trabajo.id'))
+    estudiante_id = db.Column(db.Integer, ForeignKey('estudiantes.id'))
+
+    resumen = db.Column(db.Text)
+    fecha_entrega = db.Column(db.Date)

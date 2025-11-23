@@ -36,6 +36,9 @@ def obtener_estudiante(id):
 def crear_estudiante():
     data = request.get_json()
     
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
     if not data.get('nombre'):
         return jsonify({"error": "El nombre es requerido"}), 400
     
@@ -59,6 +62,9 @@ def actualizar_estudiante(id):
     alumno = Estudiante.query.get_or_404(id)
     data = request.get_json()
     
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
     if not data.get('nombre'):
         return jsonify({"error": "El nombre es requerido"}), 400
     
@@ -79,6 +85,9 @@ def actualizar_estudiante(id):
 def actualizar_estudiante_parcial(id):
     alumno = Estudiante.query.get_or_404(id)
     data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
     
     if 'nombre' in data:
         alumno.nombre = data.get('nombre')
