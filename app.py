@@ -31,7 +31,7 @@ def create_app():
 
     # --- AQUÍ REGISTRAMOS LOS DEPARTAMENTOS (Rutas) ---
     
-    # 1. Rutas de Instituciones (La que acabas de crear)
+    # 1. Rutas de Instituciones (La que ya estaba)
     try:
         from routes.instituciones import instituciones_bp
         app.register_blueprint(instituciones_bp)
@@ -44,6 +44,14 @@ def create_app():
         app.register_blueprint(estudiantes_bp)
     except Exception:
         pass
+
+    # 3. RUTAS DE ACTAS
+    try:
+        from routes.acta_routes import acta_bp
+        app.register_blueprint(acta_bp)
+        print("✅ Rutas de Actas registradas correctamente")
+    except Exception as e:
+        print(f"❌ Error importando actas: {e}")
 
     # --------------------------------------------------
 
