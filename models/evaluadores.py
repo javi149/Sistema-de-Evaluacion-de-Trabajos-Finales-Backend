@@ -12,4 +12,4 @@ class Evaluador(db.Model):
     rol = db.Column(db.String(100))
 
     # Actas
-    evaluaciones_realizadas = db.relationship('Evaluacion', backref='evaluador', lazy=True)
+    evaluaciones_realizadas = db.relationship('Evaluacion', backref='evaluador', lazy=True) 
