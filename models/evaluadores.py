@@ -7,8 +7,9 @@ class Evaluador(db.Model):
     nombre = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(120), unique=True)
 
+    # Factory
     tipo = db.Column(db.String(50))
     rol = db.Column(db.String(100))
 
-    # --- RELACIÓN PARA LAS ACTAS ---
+    # Actas
     evaluaciones_realizadas = db.relationship('Evaluacion', backref='evaluador', lazy=True)
