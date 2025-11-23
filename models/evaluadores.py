@@ -8,3 +8,5 @@ class Evaluador(db.Model):
     email = db.Column(db.String(120), unique=True)
     tipo = db.Column(db.String(50))
     rol = db.Column(db.String(100))
+
+    evaluaciones_realizadas = db.relationship('Evaluacion', backref='evaluador', lazy=True)
