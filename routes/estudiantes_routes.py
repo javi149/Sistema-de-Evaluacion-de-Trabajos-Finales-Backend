@@ -1,8 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 from database import db
 from models import Estudiante 
 
-estudiantes_bp = Blueprint('estudiantes', __name__, url_prefix='/estudiantes')
+estudiantes_bp = Blueprint('estudiantes_bp', _name_)
+@estudiantes_bp.route('/estudiantes', methods=['GET'])
+def get_estudiantes():
+    return jsonify({"mensaje": "Aquí irán los estudiantes desde la BD"})
 
 # LISTAR TODOS
 @estudiantes_bp.route('/', methods=['GET'])
