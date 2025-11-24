@@ -105,19 +105,12 @@ def create_app():
     except Exception as e:
         print(f"⚠️ Detalle Evaluación no cargado: {e}")
 
-    # 8. Actas (CRUD: Crear, Listar, Borrar actas)
+    # 8. Actas (CRUD: Crear, Listar, Borrar actas + Generación con Template Method)
     try:
         from routes.actas import actas_bp
         app.register_blueprint(actas_bp)
     except Exception as e:
-        print(f"⚠️ Actas (CRUD) no cargado: {e}")
-
-    # 9. Generación de Actas (Patrones de Diseño: Template Method)
-    try:
-        from routes.actas import actas_bp
-        app.register_blueprint(actas_bp)
-    except Exception as e:
-        print(f"⚠️ Generación de Actas no cargado: {e}")
+        print(f"⚠️ Actas no cargado: {e}")
 
     # --------------------------------------------------
 

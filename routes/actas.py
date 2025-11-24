@@ -4,8 +4,8 @@ from flask import Blueprint, jsonify, make_response, request
 
 from database import db
 from models import Acta, Trabajo
-from patrones.acta_html import ActaHTML
-from patrones.acta_texto import ActaTexto
+from patterns.acta_html import ActaHTML
+from patterns.acta_texto import ActaTexto
 
 
 actas_bp = Blueprint('actas', __name__, url_prefix='/actas')
