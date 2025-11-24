@@ -14,12 +14,13 @@ except ImportError:
 def create_app():
     app = Flask(__name__)
 
-    # Habilitar CORS
+    # Habilitar CORS (Permite que React se conecte)
     CORS(app)
 
     # Configuración de Base de Datos
     db_uri = os.getenv('DATABASE_URL')
     if not db_uri:
+        # Fallback a SQLite local si no hay nube configurada
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///evaluacion.db'
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
@@ -30,56 +31,70 @@ def create_app():
     ConfiguracionGlobal()
 
     # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
-    # Aquí conectamos los módulos de tus compañeros
+    # Conectamos cada archivo de la carpeta 'routes' con el sistema principal.
 
-    # 1. Rutas de Estudiantes
+    # 1. Estudiantes
     try:
         from routes.estudiantes import estudiantes_bp
         app.register_blueprint(estudiantes_bp)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Estudiantes no cargado: {e}")
 
-    # 2. Rutas de Evaluadores (Profesores)
+    # 2. Evaluadores (Docentes)
     try:
         from routes.evaluadores import evaluadores_bp
         app.register_blueprint(evaluadores_bp)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Evaluadores no cargado: {e}")
 
-    # 3. Rutas de Trabajos
-    try:
-        from routes.trabajos import trabajos_bp
-        app.register_blueprint(trabajos_bp)
-    except Exception:
-        pass
-
-    # 4. Rutas de Tipos de Trabajo
+    # 3. Tipos de Trabajo
     try:
         from routes.tipos_trabajo import tipos_trabajo_bp
         app.register_blueprint(tipos_trabajo_bp)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Tipos de Trabajo no cargado: {e}")
 
-    # 5. Rutas de Criterios
+    # 4. Trabajos
+    try:
+        from routes.trabajos import trabajos_bp
+        app.register_blueprint(trabajos_bp)
+    except Exception as e:
+        print(f"⚠️ Trabajos no cargado: {e}")
+
+    # 5. Criterios
     try:
         from routes.criterios import criterios_bp
         app.register_blueprint(criterios_bp)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Criterios no cargado: {e}")
 
-    # 6. Rutas de Evaluaciones
+    # 6. Evaluaciones (Cabecera)
     try:
         from routes.evaluaciones import evaluaciones_bp
         app.register_blueprint(evaluaciones_bp)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Evaluaciones no cargado: {e}")
 
-    # 7. Rutas de Actas
+    # 7. Detalle de Evaluación (Notas por criterio)
+    try:
+        from routes.evaluacion_detalle import evaluacion_detalle_bp
+        app.register_blueprint(evaluacion_detalle_bp)
+    except Exception as e:
+        print(f"⚠️ Detalle Evaluación no cargado: {e}")
+
+    # 8. Actas (CRUD: Crear, Listar, Borrar actas)
     try:
         from routes.actas import actas_bp
         app.register_blueprint(actas_bp)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"⚠️ Actas (CRUD) no cargado: {e}")
+
+    # 9. Generación de Actas (Patrones de Diseño: Template Method)
+    try:
+        from routes.acta_routes import acta_bp
+        app.register_blueprint(acta_bp)
+    except Exception as e:
+        print(f"⚠️ Generación de Actas no cargado: {e}")
 
     # --------------------------------------------------
 
@@ -92,6 +107,7 @@ def create_app():
 # --- Configuración Global ---
 app = create_app()
 
+# Esto asegura que las tablas existan al iniciar
 with app.app_context():
     db.create_all()
 

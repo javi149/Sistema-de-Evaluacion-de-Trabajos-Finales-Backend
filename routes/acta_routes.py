@@ -1,7 +1,7 @@
 from flask import Blueprint, make_response, jsonify
 from models.trabajos import Trabajo
-from patrones.acta_html import ActaHTML
-from patrones.acta_texto import ActaTexto
+from patterns.actas_html import ActaHTML
+from patterns.actas_texto import ActaTexto
 from datetime import datetime
 
 # Definimos el "Blueprint" (El grupo de rutas) tal como lo pidió Javi
