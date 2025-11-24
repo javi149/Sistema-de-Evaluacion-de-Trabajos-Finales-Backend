@@ -34,3 +34,4 @@ def gestionar_instituciones():
             'contacto': inst.contacto
         })
     return jsonify(resultado)
+
