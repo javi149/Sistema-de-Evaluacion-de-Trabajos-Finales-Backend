@@ -49,7 +49,6 @@ def create_app():
 def _register_blueprints(app):
     """Centraliza el registro de rutas para mantener create_app limpio."""
     from routes.notas_routes import notas_bp
-    from routes.instituciones import instituciones_bp
     from routes.estudiantes import estudiantes_bp
     from routes.evaluaciones import evaluaciones_bp
     from routes.evaluadores import evaluadores_bp
@@ -60,7 +59,6 @@ def _register_blueprints(app):
     from routes.acta_routes import acta_bp
 
     app.register_blueprint(notas_bp)
-    app.register_blueprint(instituciones_bp)
     app.register_blueprint(estudiantes_bp)
     app.register_blueprint(evaluaciones_bp)
     app.register_blueprint(evaluadores_bp)
