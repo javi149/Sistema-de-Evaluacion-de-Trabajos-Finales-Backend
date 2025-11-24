@@ -10,6 +10,3 @@ class Criterio(db.Model):
     nombre = db.Column(db.String(150), nullable=False)
     descripcion = db.Column(db.Text)
     ponderacion = db.Column(db.Numeric(5, 2))
-
-    institucion = db.relationship("Institucion", back_populates="criterios")
-    detalles = db.relationship("EvaluacionDetalle", back_populates="criterio")
