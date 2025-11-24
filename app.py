@@ -1,34 +1,80 @@
-from flask import Flask
-from flask_cors import CORS
-from dotenv import load_dotenv
 import os
 
-# 1. IMPORTAMOS LA DB DESDE TU ARCHIVO database.py
-from database import db 
-# 2. IMPORTAMOS LAS RUTAS
-from routes.notas_routes import notas_bp 
+from flask import Flask
+from flask_cors import CORS
 
-load_dotenv()
+from config.config import ConfiguracionGlobal
+from database import db
 
-app = Flask(__name__)
-CORS(app)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-# Configuración
-user = os.getenv('DB_USER')
-password = os.getenv('DB_PASSWORD')
-host = os.getenv('DB_HOST')
-port = os.getenv('DB_PORT')
-dbname = os.getenv('DB_NAME')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{user}:{password}@{host}:{port}/{dbname}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+def _build_db_uri():
+    direct_uri = os.getenv('DATABASE_URL')
+    if direct_uri:
+        return direct_uri
 
-# --- 3. INICIALIZAR LA APP CON LA DB QUE IMPORTAMOS ---
-db.init_app(app) 
-# ------------------------------------------------------
+    user = os.getenv('DB_USER')
+    password = os.getenv('DB_PASSWORD')
+    host = os.getenv('DB_HOST')
+    port = os.getenv('DB_PORT')
+    dbname = os.getenv('DB_NAME')
+    driver = os.getenv('DB_DRIVER', 'mysql+mysqlconnector')
 
-# Registrar rutas
-app.register_blueprint(notas_bp)
+    if all([user, password, host, dbname]):
+        port_section = f":{port}" if port else ""
+        return f"{driver}://{user}:{password}@{host}{port_section}/{dbname}"
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    return 'sqlite:///evaluacion.db'
+
+
+def create_app():
+    app = Flask(__name__)
+    CORS(app)
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = _build_db_uri()
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(app)
+    ConfiguracionGlobal()
+    _register_blueprints(app)
+
+    return app
+
+
+def _register_blueprints(app):
+    """Centraliza el registro de rutas para mantener create_app limpio."""
+    from routes.notas_routes import notas_bp
+    from routes.instituciones import instituciones_bp
+    from routes.estudiantes import estudiantes_bp
+    from routes.evaluaciones import evaluaciones_bp
+    from routes.evaluadores import evaluadores_bp
+    from routes.criterios import criterios_bp
+    from routes.tipos_trabajo import tipos_trabajo_bp
+    from routes.trabajos import trabajos_bp
+    from routes.evaluacion_detalle import evaluacion_detalle_bp
+    from routes.acta_routes import acta_bp
+
+    app.register_blueprint(notas_bp)
+    app.register_blueprint(instituciones_bp)
+    app.register_blueprint(estudiantes_bp)
+    app.register_blueprint(evaluaciones_bp)
+    app.register_blueprint(evaluadores_bp)
+    app.register_blueprint(criterios_bp)
+    app.register_blueprint(tipos_trabajo_bp)
+    app.register_blueprint(trabajos_bp)
+    app.register_blueprint(evaluacion_detalle_bp)
+    app.register_blueprint(acta_bp)
+
+
+app = create_app()
+
+with app.app_context():
+    db.create_all()
+
+if __name__ == "__main__":
+    app.run(debug=True)

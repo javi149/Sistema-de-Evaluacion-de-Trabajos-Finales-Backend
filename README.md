@@ -1,8 +1,6 @@
 
 # Sistema de Evaluación de Trabajos Finales
 
-Proyecto para la gestión de tesis y trabajos de grado.
-
 ## Ejecución
 1. Crear entorno virtual: `python -m venv venv`
 2. Activar entorno.
