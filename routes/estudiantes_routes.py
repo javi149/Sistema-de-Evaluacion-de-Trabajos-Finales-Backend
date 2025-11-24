@@ -1,8 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from database import db
 from models import Estudiante 
 
-estudiantes_bp = Blueprint('estudiantes_bp', _name_)
+estudiantes_bp = Blueprint('estudiantes_bp', __name__)
 @estudiantes_bp.route('/estudiantes', methods=['GET'])
 def get_estudiantes():
     return jsonify({"mensaje": "Aquí irán los estudiantes desde la BD"})
@@ -25,6 +25,13 @@ def listar_estudiantes():
 @estudiantes_bp.route('/', methods=['POST'])
 def crear_estudiante():
     data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    if not data.get('nombre'):
+        return jsonify({"error": "El nombre es requerido"}), 400
+    
     nuevo = Estudiante(
         nombre=data.get('nombre'),
         apellido=data.get('apellido'),
