@@ -1,27 +1,27 @@
 class EvaluadorFactory:
-    """
-    Fábrica que define los roles de los profesores.
-    """
     @staticmethod
     def crear_perfil(tipo_evaluador):
+        if not tipo_evaluador:
+            return None
+            
         tipo = tipo_evaluador.lower().strip()
 
         if tipo == "guia":
             return {
-                "tipo": "Profesor Guía",
-                "rol": "Supervisor Principal",
-                "permisos": "total"
+                "tipo_oficial": "Profesor Guía",
+                "rol": "Supervisor",
+                "permisos": "total" # Puede editar notas
             }
         elif tipo == "comision":
             return {
-                "tipo": "Comisión Evaluadora",
+                "tipo_oficial": "Comisión Evaluadora",
                 "rol": "Evaluador Externo",
-                "permisos": "lectura_nota"
+                "permisos": "lectura_escritura_nota"
             }
         elif tipo == "informante":
             return {
-                "tipo": "Profesor Informante",
-                "rol": "Revisor Técnico",
+                "tipo_oficial": "Profesor Informante",
+                "rol": "Revisor",
                 "permisos": "lectura"
             }
         else:
