@@ -1,4 +1,3 @@
-from models.instituciones import Institucion
 from models.estudiantes import Estudiante
 from models.trabajos import Trabajo
 from models.actas import Acta
