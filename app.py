@@ -29,29 +29,57 @@ def create_app():
     db.init_app(app)
     ConfiguracionGlobal()
 
-    # --- AQUÍ REGISTRAMOS LOS DEPARTAMENTOS (Rutas) ---
-    
-    # 1. Rutas de Instituciones (La que ya estaba)
-    try:
-        from routes.instituciones import instituciones_bp
-        app.register_blueprint(instituciones_bp)
-    except Exception as e:
-        print(f"Error importando instituciones: {e}")
+    # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
+    # Aquí conectamos los módulos de tus compañeros
 
-    # 2. Rutas de Estudiantes (Ejemplo para Adán)
+    # 1. Rutas de Estudiantes
     try:
         from routes.estudiantes import estudiantes_bp
         app.register_blueprint(estudiantes_bp)
     except Exception:
         pass
 
-    # 3. RUTAS DE ACTAS
+    # 2. Rutas de Evaluadores (Profesores)
     try:
-        from routes.acta_routes import acta_bp
-        app.register_blueprint(acta_bp)
-        print("✅ Rutas de Actas registradas correctamente")
-    except Exception as e:
-        print(f"❌ Error importando actas: {e}")
+        from routes.evaluadores import evaluadores_bp
+        app.register_blueprint(evaluadores_bp)
+    except Exception:
+        pass
+
+    # 3. Rutas de Trabajos
+    try:
+        from routes.trabajos import trabajos_bp
+        app.register_blueprint(trabajos_bp)
+    except Exception:
+        pass
+
+    # 4. Rutas de Tipos de Trabajo
+    try:
+        from routes.tipos_trabajo import tipos_trabajo_bp
+        app.register_blueprint(tipos_trabajo_bp)
+    except Exception:
+        pass
+
+    # 5. Rutas de Criterios
+    try:
+        from routes.criterios import criterios_bp
+        app.register_blueprint(criterios_bp)
+    except Exception:
+        pass
+
+    # 6. Rutas de Evaluaciones
+    try:
+        from routes.evaluaciones import evaluaciones_bp
+        app.register_blueprint(evaluaciones_bp)
+    except Exception:
+        pass
+
+    # 7. Rutas de Actas
+    try:
+        from routes.actas import actas_bp
+        app.register_blueprint(actas_bp)
+    except Exception:
+        pass
 
     # --------------------------------------------------
 
@@ -61,6 +89,7 @@ def create_app():
 
     return app
 
+# --- Configuración Global ---
 app = create_app()
 
 with app.app_context():

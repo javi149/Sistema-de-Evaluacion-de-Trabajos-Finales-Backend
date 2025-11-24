@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models import Evaluacion
+from datetime import datetime
 
 evaluaciones_bp = Blueprint('evaluaciones', __name__, url_prefix='/evaluaciones')
 
@@ -12,7 +13,8 @@ def listar_evaluaciones():
         "trabajo_id": e.trabajo_id,
         "evaluador_id": e.evaluador_id,
         "nota_final": float(e.nota_final) if e.nota_final else None,
-        "comentarios": e.comentarios
+        "comentarios": e.comentarios,
+        "fecha_evaluacion": e.fecha_evaluacion.isoformat() if e.fecha_evaluacion else None
     } for e in evaluaciones]
     return jsonify(resultado)
 
@@ -27,11 +29,19 @@ def registrar_evaluacion():
     if not data.get('trabajo_id'):
         return jsonify({"error": "El trabajo_id es requerido"}), 400
     
+    fecha_evaluacion = None
+    if data.get('fecha_evaluacion'):
+        try:
+            fecha_evaluacion = datetime.strptime(data.get('fecha_evaluacion'), '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+    
     nueva = Evaluacion(
         trabajo_id=data.get('trabajo_id'),
         evaluador_id=data.get('evaluador_id'),
         nota_final=data.get('nota_final'),
-        comentarios=data.get('comentarios')
+        comentarios=data.get('comentarios'),
+        fecha_evaluacion=fecha_evaluacion
     )
     
     db.session.add(nueva)

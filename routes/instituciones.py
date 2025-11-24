@@ -15,7 +15,8 @@ def gestionar_instituciones():
             nueva_inst = Institucion(
                 nombre=data.get('nombre'),
                 direccion=data.get('direccion'),
-                contacto=data.get('contacto')
+                contacto=data.get('contacto'),
+                logo_url=data.get('logo_url')
             )
             db.session.add(nueva_inst)
             db.session.commit()
@@ -31,7 +32,8 @@ def gestionar_instituciones():
             'id': inst.id,
             'nombre': inst.nombre,
             'direccion': inst.direccion,
-            'contacto': inst.contacto
+            'contacto': inst.contacto,
+            'logo_url': inst.logo_url
         })
     return jsonify(resultado)
 
