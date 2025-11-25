@@ -10,7 +10,6 @@ def listar_criterios():
   
     resultado = [{
         "id": c.id,
-        "institucion_id": c.institucion_id,
         "nombre": c.nombre,
         "descripcion": c.descripcion,
         "ponderacion": float(c.ponderacion) if c.ponderacion else None
@@ -28,7 +27,6 @@ def crear_criterio():
         return jsonify({"error": "El nombre es requerido"}), 400
     
     nuevo = Criterio(
-        institucion_id=data.get('institucion_id'),
         nombre=data.get('nombre'),
         descripcion=data.get('descripcion'),
         ponderacion=data.get('ponderacion')
@@ -43,7 +41,6 @@ def obtener_criterio(id):
     criterio = Criterio.query.get_or_404(id)
     return jsonify({
         "id": criterio.id,
-        "institucion_id": criterio.institucion_id,
         "nombre": criterio.nombre,
         "descripcion": criterio.descripcion,
         "ponderacion": float(criterio.ponderacion) if criterio.ponderacion else None
@@ -61,7 +58,6 @@ def actualizar_criterio(id):
     if not data.get('nombre'):
         return jsonify({"error": "El nombre es requerido"}), 400
     
-    criterio.institucion_id = data.get('institucion_id')
     criterio.nombre = data.get('nombre')
     criterio.descripcion = data.get('descripcion')
     criterio.ponderacion = data.get('ponderacion')
@@ -81,8 +77,6 @@ def actualizar_criterio_parcial(id):
     if not data:
         return jsonify({"error": "No se recibieron datos JSON"}), 400
     
-    if 'institucion_id' in data:
-        criterio.institucion_id = data.get('institucion_id')
     if 'nombre' in data:
         criterio.nombre = data.get('nombre')
     if 'descripcion' in data:
