@@ -37,7 +37,7 @@ def create_app():
 
 
     # Habilitar CORS (Permite que React se conecte)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
     # Configuración de Base de Datos
     db_uri = os.getenv('DATABASE_URL')
