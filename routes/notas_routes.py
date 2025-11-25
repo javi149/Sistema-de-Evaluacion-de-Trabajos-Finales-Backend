@@ -10,6 +10,11 @@ notas_bp = Blueprint('notas_bp', __name__)
 
 @notas_bp.route('/api/calcular-nota/<int:trabajo_id>', methods=['GET'])
 def calcular_nota_final(trabajo_id):
+    """
+    Calcula la nota final ponderada de un trabajo basándose en:
+    - Las notas de cada criterio (EvaluacionDetalle)
+    - Las ponderaciones de cada criterio (Criterio.ponderacion)
+    """
     try:
         calificaciones = (
             db.session.query(EvaluacionDetalle.nota, Criterio.ponderacion)
@@ -48,3 +53,6 @@ def calcular_nota_final(trabajo_id):
         db.session.rollback()
         print(f"ERROR SQL: {e}")
         return jsonify({"error": "Ocurrió un error al consultar las notas"}), 500
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return jsonify({"error": str(e)}), 500

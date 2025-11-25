@@ -112,6 +112,13 @@ def create_app():
     except Exception as e:
         print(f"⚠️ Actas no cargado: {e}")
 
+    # 9. Cálculo de Notas
+    try:
+        from routes.notas_routes import notas_bp
+        app.register_blueprint(notas_bp)
+    except Exception as e:
+        print(f"⚠️ Cálculo de Notas no cargado: {e}")
+
     # --------------------------------------------------
 
     @app.route("/ping")

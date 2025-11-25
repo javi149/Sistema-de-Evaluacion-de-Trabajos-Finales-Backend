@@ -113,3 +113,20 @@ def eliminar_estudiante(id):
     db.session.delete(alumno)
     db.session.commit()
     return jsonify({"mensaje": "Estudiante eliminado exitosamente"})
+
+# OBTENER TRABAJOS DE UN ESTUDIANTE
+@estudiantes_bp.route('/<int:id>/trabajos', methods=['GET'])
+def obtener_trabajos_estudiante(id):
+    estudiante = Estudiante.query.get_or_404(id)
+    trabajos = estudiante.trabajos if hasattr(estudiante, 'trabajos') else []
+    resultado = [{
+        "id": t.id,
+        "titulo": t.titulo,
+        "duracion_meses": t.duracion_meses,
+        "nota_aprobacion": float(t.nota_aprobacion) if t.nota_aprobacion else None,
+        "requisito_aprobacion": t.requisito_aprobacion,
+        "resumen": t.resumen,
+        "fecha_entrega": t.fecha_entrega.isoformat() if t.fecha_entrega else None,
+        "estudiante_id": t.estudiante_id
+    } for t in trabajos]
+    return jsonify(resultado)
