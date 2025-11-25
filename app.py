@@ -37,7 +37,25 @@ def create_app():
 
 
     # Habilitar CORS (Permite que React se conecte)
-    CORS(app)
+    # Configuración completa para permitir todos los métodos y headers
+    CORS(app, 
+         resources={r"/*": {
+             "origins": "*",
+             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+             "supports_credentials": False
+         }},
+         supports_credentials=False
+    )
+    
+    # Agregar headers CORS manualmente para asegurar compatibilidad
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
+        response.headers.add('Access-Control-Max-Age', '3600')
+        return response
 
     # Configuración de Base de Datos
     db_uri = os.getenv('DATABASE_URL')
