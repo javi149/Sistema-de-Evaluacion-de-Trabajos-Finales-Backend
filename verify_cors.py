@@ -7,85 +7,85 @@ import time
 import sys
 import os
 
-# Add project root to path to import app
+# Agregar la raíz del proyecto al path para importar app
 sys.path.append(os.getcwd())
 
 try:
-    from app import create_app
+    from app import crear_app
 except ImportError:
-    print("Could not import app. Make sure you are in the project root.")
+    print("No se pudo importar app. Asegúrate de estar en la raíz del proyecto.")
     sys.exit(1)
 
-def run_server(app):
-    # Suppress flask banner
+def ejecutar_servidor(app):
+    # Suprimir banner de flask
     import logging
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     app.run(port=5001, use_reloader=False)
 
-def verify_cors():
-    # Start server in a thread
-    app = create_app()
-    server_thread = threading.Thread(target=run_server, args=(app,))
-    server_thread.daemon = True
-    server_thread.start()
+def verificar_cors():
+    # Iniciar servidor en un hilo
+    app = crear_app()
+    hilo_servidor = threading.Thread(target=ejecutar_servidor, args=(app,))
+    hilo_servidor.daemon = True
+    hilo_servidor.start()
     
-    # Wait for server to start
+    # Esperar a que el servidor inicie
     time.sleep(2)
     
-    base_url = "http://localhost:5001"
+    url_base = "http://localhost:5001"
     
-    print("--- Verifying CORS ---")
+    print("--- Verificando CORS ---")
     
-    # Test OPTIONS request (Preflight)
-    print("\nTesting OPTIONS request...")
+    # Probar petición OPTIONS (Preflight)
+    print("\nProbando petición OPTIONS...")
     try:
-        req = urllib.request.Request(f"{base_url}/estudiantes/", method="OPTIONS")
+        req = urllib.request.Request(f"{url_base}/estudiantes/", method="OPTIONS")
         req.add_header("Origin", "http://localhost:3000")
         req.add_header("Access-Control-Request-Method", "GET")
         req.add_header("Access-Control-Request-Headers", "Content-Type")
         
         with urllib.request.urlopen(req) as response:
-            print(f"Status Code: {response.status}")
-            print("Headers:")
+            print(f"Código de Estado: {response.status}")
+            print("Encabezados:")
             headers = response.info()
             for k, v in headers.items():
                 if "Access-Control" in k:
                     print(f"  {k}: {v}")
             
             if response.status == 200 and "Access-Control-Allow-Origin" in headers:
-                print("OPTIONS request successful")
+                print("Petición exitosa")
             else:
-                print("OPTIONS request failed")
+                print("Petición fallida")
             
     except urllib.error.HTTPError as e:
-        print(f"Error testing OPTIONS: {e}")
+        print(f"Error probando : {e}")
     except Exception as e:
-        print(f"Error testing OPTIONS: {e}")
+        print(f"Error probando : {e}")
 
-    # Test GET request
-    print("\nTesting GET request...")
+    # Probar petición GET
+    print("\nProbando petición GET...")
     try:
-        req = urllib.request.Request(f"{base_url}/estudiantes/", method="GET")
+        req = urllib.request.Request(f"{url_base}/estudiantes/", method="GET")
         req.add_header("Origin", "http://localhost:3000")
         
         with urllib.request.urlopen(req) as response:
-            print(f"Status Code: {response.status}")
-            print("Headers:")
+            print(f"Código de Estado: {response.status}")
+            print("Encabezados:")
             headers = response.info()
             for k, v in headers.items():
                 if "Access-Control" in k:
                     print(f"  {k}: {v}")
                 
             if "Access-Control-Allow-Origin" in headers:
-                print("GET request has CORS headers")
+                print("Petición GET tiene encabezados CORS")
             else:
-                print("GET request missing CORS headers")
+                print("Petición GET le faltan encabezados CORS")
 
     except urllib.error.HTTPError as e:
-        print(f"Error testing GET: {e}")
+        print(f"Error probando GET: {e}")
     except Exception as e:
-        print(f"Error testing GET: {e}")
+        print(f"Error probando GET: {e}")
 
 if __name__ == "__main__":
-    verify_cors()
+    verificar_cors()

@@ -32,7 +32,7 @@ def _build_db_uri():
     return 'sqlite:///evaluacion.db'
 
 
-def create_app():
+def crear_app():
     app = Flask(__name__)
 
 
@@ -139,7 +139,7 @@ def create_app():
     return app
 
 # --- Configuración Global ---
-app = create_app()
+app = crear_app()
 
 # Esto asegura que las tablas existan al iniciar
 with app.app_context():

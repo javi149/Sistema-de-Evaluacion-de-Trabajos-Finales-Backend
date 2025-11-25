@@ -68,7 +68,7 @@ try:
 except ImportError:
     pass
 
-def create_app():
+def crear_app():
     app = Flask(__name__)
     
     # Configuración de Base de Datos (Prioridad: MySQL via .env, sino SQLite local)
@@ -95,7 +95,7 @@ def create_app():
     return app
 
 if __name__ == "__main__":
-    app = create_app()
+    app = crear_app()
     with app.app_context():
         db.create_all() # Crea las tablas vacias si no existen
     app.run(debug=True)
@@ -129,18 +129,18 @@ Proyecto para la gestión de tesis y trabajos de grado.
     }
 }
 
-def create_structure(base_path, structure):
-    for name, content in structure.items():
-        path = os.path.join(base_path, name)
-        if isinstance(content, dict):
-            if not os.path.exists(path):
-                os.makedirs(path)
-            create_structure(path, content)
+def crear_estructura(ruta_base, estructura):
+    for nombre, contenido in estructura.items():
+        ruta = os.path.join(ruta_base, nombre)
+        if isinstance(contenido, dict):
+            if not os.path.exists(ruta):
+                os.makedirs(ruta)
+            crear_estructura(ruta, contenido)
         else:
-            with open(path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            print(f"Creado archivo: {path}")
+            with open(ruta, 'w', encoding='utf-8') as f:
+                f.write(contenido)
+            print(f"Creado archivo: {ruta}")
 
 if __name__ == "__main__":
-    create_structure(".", structure)
+    crear_estructura(".", structure)
     print("¡Estructura del proyecto generada con éxito!")
