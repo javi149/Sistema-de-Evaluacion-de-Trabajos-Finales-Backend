@@ -36,3 +36,70 @@ def crear_criterio():
     db.session.add(nuevo)
     db.session.commit()
     return jsonify({"mensaje": "Criterio configurado exitosamente", "id": nuevo.id}), 201
+
+# OBTENER UNO POR ID
+@criterios_bp.route('/<int:id>', methods=['GET'])
+def obtener_criterio(id):
+    criterio = Criterio.query.get_or_404(id)
+    return jsonify({
+        "id": criterio.id,
+        "institucion_id": criterio.institucion_id,
+        "nombre": criterio.nombre,
+        "descripcion": criterio.descripcion,
+        "ponderacion": float(criterio.ponderacion) if criterio.ponderacion else None
+    })
+
+# ACTUALIZAR COMPLETO (PUT)
+@criterios_bp.route('/<int:id>', methods=['PUT'])
+def actualizar_criterio(id):
+    criterio = Criterio.query.get_or_404(id)
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    if not data.get('nombre'):
+        return jsonify({"error": "El nombre es requerido"}), 400
+    
+    criterio.institucion_id = data.get('institucion_id')
+    criterio.nombre = data.get('nombre')
+    criterio.descripcion = data.get('descripcion')
+    criterio.ponderacion = data.get('ponderacion')
+    
+    db.session.commit()
+    return jsonify({
+        "mensaje": "Criterio actualizado exitosamente",
+        "id": criterio.id
+    })
+
+# ACTUALIZAR PARCIAL (PATCH)
+@criterios_bp.route('/<int:id>', methods=['PATCH'])
+def actualizar_criterio_parcial(id):
+    criterio = Criterio.query.get_or_404(id)
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    if 'institucion_id' in data:
+        criterio.institucion_id = data.get('institucion_id')
+    if 'nombre' in data:
+        criterio.nombre = data.get('nombre')
+    if 'descripcion' in data:
+        criterio.descripcion = data.get('descripcion')
+    if 'ponderacion' in data:
+        criterio.ponderacion = data.get('ponderacion')
+    
+    db.session.commit()
+    return jsonify({
+        "mensaje": "Criterio actualizado exitosamente",
+        "id": criterio.id
+    })
+
+# ELIMINAR
+@criterios_bp.route('/<int:id>', methods=['DELETE'])
+def eliminar_criterio(id):
+    criterio = Criterio.query.get_or_404(id)
+    db.session.delete(criterio)
+    db.session.commit()
+    return jsonify({"mensaje": "Criterio eliminado exitosamente"})

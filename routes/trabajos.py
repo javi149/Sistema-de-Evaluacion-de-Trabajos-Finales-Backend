@@ -134,3 +134,34 @@ def eliminar_trabajo(id):
     db.session.delete(trabajo)
     db.session.commit()
     return jsonify({"mensaje": "Trabajo eliminado exitosamente"})
+
+# LISTAR TRABAJOS POR ESTUDIANTE
+@trabajos_bp.route('/estudiante/<int:estudiante_id>', methods=['GET'])
+def listar_trabajos_por_estudiante(estudiante_id):
+    trabajos = Trabajo.query.filter_by(estudiante_id=estudiante_id).all()
+    resultado = [{
+        "id": t.id, 
+        "titulo": t.titulo,
+        "duracion_meses": t.duracion_meses,
+        "nota_aprobacion": float(t.nota_aprobacion) if t.nota_aprobacion else None,
+        "requisito_aprobacion": t.requisito_aprobacion,
+        "resumen": t.resumen,
+        "fecha_entrega": t.fecha_entrega.isoformat() if t.fecha_entrega else None,
+        "estudiante_id": t.estudiante_id
+    } for t in trabajos]
+    return jsonify(resultado)
+
+# OBTENER EVALUACIONES DE UN TRABAJO
+@trabajos_bp.route('/<int:id>/evaluaciones', methods=['GET'])
+def obtener_evaluaciones_trabajo(id):
+    trabajo = Trabajo.query.get_or_404(id)
+    evaluaciones = trabajo.evaluaciones if hasattr(trabajo, 'evaluaciones') else []
+    resultado = [{
+        "id": e.id,
+        "trabajo_id": e.trabajo_id,
+        "evaluador_id": e.evaluador_id,
+        "nota_final": float(e.nota_final) if e.nota_final else None,
+        "comentarios": e.comentarios,
+        "fecha_evaluacion": e.fecha_evaluacion.isoformat() if e.fecha_evaluacion else None
+    } for e in evaluaciones]
+    return jsonify(resultado)
