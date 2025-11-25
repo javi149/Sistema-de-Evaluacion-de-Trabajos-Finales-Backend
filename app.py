@@ -1,8 +1,6 @@
 import os
-
 from flask import Flask, request, make_response
 from flask_cors import CORS
-
 from config.config import ConfiguracionGlobal
 from database import db
 
@@ -12,12 +10,14 @@ try:
 except ImportError:
     pass
 
-
+# --- Función Auxiliar para construir la URL de la Base de Datos ---
 def _build_db_uri():
+    # 1. Si existe la URL completa en .env (Railway), úsala.
     direct_uri = os.getenv('DATABASE_URL')
     if direct_uri:
         return direct_uri
 
+    # 2. Si no, intenta armarla con partes (Usuario, Pass, Host...)
     user = os.getenv('DB_USER')
     password = os.getenv('DB_PASSWORD')
     host = os.getenv('DB_HOST')
@@ -29,36 +29,25 @@ def _build_db_uri():
         port_section = f":{port}" if port else ""
         return f"{driver}://{user}:{password}@{host}{port_section}/{dbname}"
 
+    # 3. Si todo falla, usa SQLite local (Plan B)
     return 'sqlite:///evaluacion.db'
 
 
 def crear_app():
     app = Flask(__name__)
 
-
-    # Habilitar CORS (Permite que React se conecte)
-    # Configuración completa para permitir todos los métodos y headers
-    # Habilitar CORS (Permite que React se conecte)
-    # Usamos la configuración por defecto que es la más permisiva (permite todo)
+    # --- HABILITAR CORS (Permitir todo para conectar Frontend) ---
     CORS(app, resources={r"/*": {"origins": "*"}})
 
-    # Configuración de Base de Datos
-    db_uri = os.getenv('DATABASE_URL')
-    if not db_uri:
-        # Fallback a SQLite local si no hay nube configurada
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///evaluacion.db'
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
-
-
+    # --- Configuración de Base de Datos (Usando la función auxiliar) ---
+    app.config['SQLALCHEMY_DATABASE_URI'] = _build_db_uri()
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
     ConfiguracionGlobal()
 
     # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
-    # Conectamos cada archivo de la carpeta 'routes' con el sistema principal.
-
+    
     # 1. Estudiantes
     try:
         from routes.estudiantes import estudiantes_bp
@@ -66,7 +55,7 @@ def crear_app():
     except Exception as e:
         print(f"⚠️ Estudiantes no cargado: {e}")
 
-    # 2. Evaluadores (Docentes)
+    # 2. Evaluadores
     try:
         from routes.evaluadores_routes import evaluadores_bp
         app.register_blueprint(evaluadores_bp)
@@ -94,22 +83,24 @@ def crear_app():
     except Exception as e:
         print(f"⚠️ Criterios no cargado: {e}")
 
-    # 6. Evaluaciones (Cabecera)
+    # 6. Evaluaciones
     try:
         from routes.evaluaciones import evaluaciones_bp
         app.register_blueprint(evaluaciones_bp)
     except Exception as e:
         print(f"⚠️ Evaluaciones no cargado: {e}")
 
-    # 7. Detalle de Evaluación (Notas por criterio)
+    # 7. Detalle de Evaluación
     try:
         from routes.evaluacion_detalle import evaluacion_detalle_bp
         app.register_blueprint(evaluacion_detalle_bp)
     except Exception as e:
         print(f"⚠️ Detalle Evaluación no cargado: {e}")
 
-    # 8. Actas (CRUD: Crear, Listar, Borrar actas + Generación con Template Method)
+    # 8. Actas (CRUD y Generación)
     try:
+        # Asegúrate de que este archivo maneje tanto el CRUD como la generación
+        # O si tienes un 'acta_routes.py' separado, agrégalo abajo.
         from routes.actas import actas_bp
         app.register_blueprint(actas_bp)
     except Exception as e:
@@ -130,19 +121,23 @@ def crear_app():
 
     return app
 
-# --- Configuración Global ---
+# --- Inicialización ---
 app = crear_app()
 
-# Esto asegura que las tablas existan al iniciar
+# Crear tablas si no existen
 with app.app_context():
     db.create_all()
 
+# Mensaje de inicio prolijo
 if __name__ == "__main__":
     port = int(os.getenv('PORT', 5000))
-    print("\n" + "="*50)
-    print("🚀 INICIANDO SERVIDOR BACKEND")
-    print("="*50)
-    print(f"📡 URL Base: http://0.0.0.0:{port}")
-    print(f"🗄️  Base de Datos: {app.config['SQLALCHEMY_DATABASE_URI'].split('@')[-1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else 'SQLite Local'}")
-    print("="*50 + "\n")
+    print("\n" + "="*60)
+    print("🚀  SISTEMA DE EVALUACIÓN - BACKEND INICIADO")
+    print("="*60)
+    print(f"📡  URL Local:   http://localhost:{port}")
+    # Ocultamos la contraseña de la DB en el print por seguridad
+    db_name = app.config['SQLALCHEMY_DATABASE_URI'].split('/')[-1]
+    print(f"🗄️   Base de Datos: {db_name}")
+    print("="*60 + "\n")
+    
     app.run(host="0.0.0.0", port=port, debug=True)
