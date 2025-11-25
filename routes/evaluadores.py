@@ -105,3 +105,18 @@ def eliminar_evaluador(id):
     db.session.delete(evaluador)
     db.session.commit()
     return jsonify({"mensaje": "Evaluador eliminado exitosamente"})
+
+# OBTENER EVALUACIONES DE UN EVALUADOR
+@evaluadores_bp.route('/<int:id>/evaluaciones', methods=['GET'])
+def obtener_evaluaciones_evaluador(id):
+    evaluador = Evaluador.query.get_or_404(id)
+    evaluaciones = evaluador.evaluaciones_realizadas if hasattr(evaluador, 'evaluaciones_realizadas') else []
+    resultado = [{
+        "id": e.id,
+        "trabajo_id": e.trabajo_id,
+        "evaluador_id": e.evaluador_id,
+        "nota_final": float(e.nota_final) if e.nota_final else None,
+        "comentarios": e.comentarios,
+        "fecha_evaluacion": e.fecha_evaluacion.isoformat() if e.fecha_evaluacion else None
+    } for e in evaluaciones]
+    return jsonify(resultado)

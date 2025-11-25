@@ -1,18 +1,40 @@
 import os
+
 from flask import Flask
 from flask_cors import CORS
-from database import db
-from config.config import ConfiguracionGlobal
 
-# Cargar .env
+from config.config import ConfiguracionGlobal
+from database import db
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
 
+
+def _build_db_uri():
+    direct_uri = os.getenv('DATABASE_URL')
+    if direct_uri:
+        return direct_uri
+
+    user = os.getenv('DB_USER')
+    password = os.getenv('DB_PASSWORD')
+    host = os.getenv('DB_HOST')
+    port = os.getenv('DB_PORT')
+    dbname = os.getenv('DB_NAME')
+    driver = os.getenv('DB_DRIVER', 'mysql+mysqlconnector')
+
+    if all([user, password, host, dbname]):
+        port_section = f":{port}" if port else ""
+        return f"{driver}://{user}:{password}@{host}{port_section}/{dbname}"
+
+    return 'sqlite:///evaluacion.db'
+
+
 def create_app():
     app = Flask(__name__)
+
 
     # Habilitar CORS (Permite que React se conecte)
     # Configuración completa para permitir todos los métodos y headers
@@ -43,6 +65,7 @@ def create_app():
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
@@ -60,7 +83,7 @@ def create_app():
 
     # 2. Evaluadores (Docentes)
     try:
-        from routes.evaluadores import evaluadores_bp
+        from routes.evaluadores_routes import evaluadores_bp
         app.register_blueprint(evaluadores_bp)
     except Exception as e:
         print(f"⚠️ Evaluadores no cargado: {e}")
@@ -74,7 +97,7 @@ def create_app():
 
     # 4. Trabajos
     try:
-        from routes.trabajos import trabajos_bp
+        from routes.trabajos_routes import trabajos_bp
         app.register_blueprint(trabajos_bp)
     except Exception as e:
         print(f"⚠️ Trabajos no cargado: {e}")
@@ -100,19 +123,19 @@ def create_app():
     except Exception as e:
         print(f"⚠️ Detalle Evaluación no cargado: {e}")
 
-    # 8. Actas (CRUD: Crear, Listar, Borrar actas)
+    # 8. Actas (CRUD: Crear, Listar, Borrar actas + Generación con Template Method)
     try:
         from routes.actas import actas_bp
         app.register_blueprint(actas_bp)
     except Exception as e:
-        print(f"⚠️ Actas (CRUD) no cargado: {e}")
+        print(f"⚠️ Actas no cargado: {e}")
 
-    # 9. Generación de Actas (Patrones de Diseño: Template Method)
+    # 9. Cálculo de Notas
     try:
-        from routes.acta_routes import acta_bp
-        app.register_blueprint(acta_bp)
+        from routes.notas_routes import notas_bp
+        app.register_blueprint(notas_bp)
     except Exception as e:
-        print(f"⚠️ Generación de Actas no cargado: {e}")
+        print(f"⚠️ Cálculo de Notas no cargado: {e}")
 
     # --------------------------------------------------
 
