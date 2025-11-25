@@ -38,17 +38,9 @@ def crear_app():
 
     # Habilitar CORS (Permite que React se conecte)
     # Configuración completa para permitir todos los métodos y headers
-    CORS(app, 
-         resources={r"/*": {
-             "origins": "*",
-             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
-             "supports_credentials": False,
-             "expose_headers": ["Content-Type"]
-         }},
-         supports_credentials=False,
-         automatic_options=True
-    )
+    # Habilitar CORS (Permite que React se conecte)
+    # Usamos la configuración por defecto que es la más permisiva (permite todo)
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Configuración de Base de Datos
     db_uri = os.getenv('DATABASE_URL')
@@ -146,10 +138,11 @@ with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
+    port = int(os.getenv('PORT', 5000))
     print("\n" + "="*50)
     print("🚀 INICIANDO SERVIDOR BACKEND")
     print("="*50)
-    print(f"📡 URL Base: http://localhost:5000")
+    print(f"📡 URL Base: http://0.0.0.0:{port}")
     print(f"🗄️  Base de Datos: {app.config['SQLALCHEMY_DATABASE_URI'].split('@')[-1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else 'SQLite Local'}")
     print("="*50 + "\n")
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=port, debug=True)
