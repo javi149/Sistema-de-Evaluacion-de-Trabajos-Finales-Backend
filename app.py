@@ -49,26 +49,6 @@ def create_app():
          supports_credentials=False,
          automatic_options=True
     )
-    
-    # Agregar headers CORS manualmente para asegurar compatibilidad
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,Origin')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
-        response.headers.add('Access-Control-Max-Age', '3600')
-        return response
-    
-    # Manejar peticiones OPTIONS (preflight) explícitamente
-    @app.before_request
-    def handle_preflight():
-        if request.method == "OPTIONS":
-            response = make_response()
-            response.headers.add("Access-Control-Allow-Origin", "*")
-            response.headers.add('Access-Control-Allow-Headers', "Content-Type,Authorization,X-Requested-With,Accept,Origin")
-            response.headers.add('Access-Control-Allow-Methods', "GET,PUT,POST,DELETE,PATCH,OPTIONS")
-            response.headers.add('Access-Control-Max-Age', "3600")
-            return response
 
     # Configuración de Base de Datos
     db_uri = os.getenv('DATABASE_URL')
