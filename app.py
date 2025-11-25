@@ -37,6 +37,9 @@ def create_app():
 
 
     # Habilitar CORS (Permite que React se conecte)
+
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+
     # Configuración completa para permitir todos los métodos y headers
     CORS(app, 
          resources={r"/*": {
