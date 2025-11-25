@@ -146,4 +146,10 @@ with app.app_context():
     db.create_all()
 
 if __name__ == "__main__":
+    print("\n" + "="*50)
+    print("🚀 INICIANDO SERVIDOR BACKEND")
+    print("="*50)
+    print(f"📡 URL Base: http://localhost:5000")
+    print(f"🗄️  Base de Datos: {app.config['SQLALCHEMY_DATABASE_URI'].split('@')[-1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else 'SQLite Local'}")
+    print("="*50 + "\n")
     app.run(debug=True)
