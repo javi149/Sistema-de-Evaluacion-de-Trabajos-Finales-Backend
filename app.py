@@ -35,44 +35,34 @@ def _build_db_uri():
 def create_app():
     app = Flask(__name__)
 
-
-    # Habilitar CORS (Permite que React se conecte)
-
-    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-
-    # Configuración completa para permitir todos los métodos y headers
-    CORS(app, 
-         resources={r"/*": {
-             "origins": "*",
-             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-             "supports_credentials": False
-         }},
-         supports_credentials=False
-    )
-    
-    # Agregar headers CORS manualmente para asegurar compatibilidad
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
-        response.headers.add('Access-Control-Max-Age', '3600')
-        return response
-
     # Configuración de Base de Datos
-    db_uri = os.getenv('DATABASE_URL')
-    if not db_uri:
-        # Fallback a SQLite local si no hay nube configurada
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///evaluacion.db'
-    else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
-
-
+    db_uri = _build_db_uri()
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
     ConfiguracionGlobal()
+
+    # Habilitar CORS con configuración completa
+    CORS(app, 
+         resources={r"/*": {
+             "origins": "*",
+             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+             "expose_headers": ["Content-Type"],
+             "supports_credentials": False,
+             "max_age": 3600
+         }}
+    )
+    
+    # Agregar headers CORS manualmente para asegurar compatibilidad total
+    @app.after_request
+    def after_request(response):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With,Accept'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+        response.headers['Access-Control-Max-Age'] = '3600'
+        return response
 
     # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
     # Conectamos cada archivo de la carpeta 'routes' con el sistema principal.
