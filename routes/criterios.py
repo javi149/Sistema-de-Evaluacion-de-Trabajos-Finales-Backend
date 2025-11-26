@@ -1,37 +1,99 @@
 from flask import Blueprint, jsonify, request
 from database import db
-from models.criterios import Criterio
+from models import Criterio
 
-# Definimos el Blueprint
-criterios_bp = Blueprint('criterios', __name__)
+criterios_bp = Blueprint('criterios', __name__, url_prefix='/criterios')
 
-# --- RUTA CORRECTA: /api/criterios ---
-@criterios_bp.route('/api/criterios', methods=['GET'])
+@criterios_bp.route('/', methods=['GET'])
 def listar_criterios():
-    try:
-        lista = Criterio.query.all()
-        resultado = [{
-            "id": c.id,
-            "nombre": c.nombre,
-            "descripcion": c.descripcion,
-            "ponderacion": float(c.ponderacion) if c.ponderacion else 0
-        } for c in lista]
-        return jsonify(resultado)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    lista = Criterio.query.all()
+  
+    resultado = [{
+        "id": c.id,
+        "nombre": c.nombre,
+        "descripcion": c.descripcion,
+        "ponderacion": float(c.ponderacion) if c.ponderacion else None
+    } for c in lista]
+    return jsonify(resultado)
 
-@criterios_bp.route('/api/criterios', methods=['POST'])
+@criterios_bp.route('/', methods=['POST'])
 def crear_criterio():
     data = request.get_json()
-    try:
-        nuevo = Criterio(
-            nombre=data.get('nombre'),
-            descripcion=data.get('descripcion'),
-            ponderacion=data.get('ponderacion'),
-            institucion_id=1 # Valor por defecto para evitar errores si no se envía
-        )
-        db.session.add(nuevo)
-        db.session.commit()
-        return jsonify({"mensaje": "Criterio creado", "id": nuevo.id}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    if not data.get('nombre'):
+        return jsonify({"error": "El nombre es requerido"}), 400
+    
+    nuevo = Criterio(
+        nombre=data.get('nombre'),
+        descripcion=data.get('descripcion'),
+        ponderacion=data.get('ponderacion')
+    )
+    db.session.add(nuevo)
+    db.session.commit()
+    return jsonify({"mensaje": "Criterio configurado exitosamente", "id": nuevo.id}), 201
+
+# OBTENER UNO POR ID
+@criterios_bp.route('/<int:id>', methods=['GET'])
+def obtener_criterio(id):
+    criterio = Criterio.query.get_or_404(id)
+    return jsonify({
+        "id": criterio.id,
+        "nombre": criterio.nombre,
+        "descripcion": criterio.descripcion,
+        "ponderacion": float(criterio.ponderacion) if criterio.ponderacion else None
+    })
+
+# ACTUALIZAR COMPLETO (PUT)
+@criterios_bp.route('/<int:id>', methods=['PUT'])
+def actualizar_criterio(id):
+    criterio = Criterio.query.get_or_404(id)
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    if not data.get('nombre'):
+        return jsonify({"error": "El nombre es requerido"}), 400
+    
+    criterio.nombre = data.get('nombre')
+    criterio.descripcion = data.get('descripcion')
+    criterio.ponderacion = data.get('ponderacion')
+    
+    db.session.commit()
+    return jsonify({
+        "mensaje": "Criterio actualizado exitosamente",
+        "id": criterio.id
+    })
+
+# ACTUALIZAR PARCIAL (PATCH)
+@criterios_bp.route('/<int:id>', methods=['PATCH'])
+def actualizar_criterio_parcial(id):
+    criterio = Criterio.query.get_or_404(id)
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+    
+    if 'nombre' in data:
+        criterio.nombre = data.get('nombre')
+    if 'descripcion' in data:
+        criterio.descripcion = data.get('descripcion')
+    if 'ponderacion' in data:
+        criterio.ponderacion = data.get('ponderacion')
+    
+    db.session.commit()
+    return jsonify({
+        "mensaje": "Criterio actualizado exitosamente",
+        "id": criterio.id
+    })
+
+# ELIMINAR
+@criterios_bp.route('/<int:id>', methods=['DELETE'])
+def eliminar_criterio(id):
+    criterio = Criterio.query.get_or_404(id)
+    db.session.delete(criterio)
+    db.session.commit()
+    return jsonify({"mensaje": "Criterio eliminado exitosamente"})
