@@ -34,6 +34,7 @@ def _build_db_uri():
 
 def create_app():
     app = Flask(__name__)
+    app.url_map.strict_slashes = False # Permite URLs con o sin slash final (evita redirects 308 que rompen CORS)
 
     # Configuración de Base de Datos
     db_uri = _build_db_uri()
