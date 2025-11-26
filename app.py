@@ -27,23 +27,6 @@ def _build_db_uri():
 
     if all([user, password, host, dbname]):
         port_section = f":{port}" if port else ""
-        return f"{driver}://{user}:{password}@{host}{port_section}/{dbname}"
-
-    # 3. Si todo falla, usa SQLite local (Plan B)
-    return 'sqlite:///evaluacion.db'
-
-
-def crear_app():
-    app = Flask(__name__)
-
-    # --- HABILITAR CORS (Permitir todo para conectar Frontend) ---
-    CORS(app, resources={r"/*": {"origins": "*"}})
-
-    # --- Configuración de Base de Datos (Usando la función auxiliar) ---
-    app.config['SQLALCHEMY_DATABASE_URI'] = _build_db_uri()
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    db.init_app(app)
     ConfiguracionGlobal()
 
     # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
