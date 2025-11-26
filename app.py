@@ -43,22 +43,23 @@ def create_app():
     db.init_app(app)
     ConfiguracionGlobal()
 
-    # Habilitar CORS (Permite que React se conecte)
+    # Habilitar CORS con configuración completa
     CORS(app, 
          resources={r"/*": {
              "origins": "*",
              "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
              "expose_headers": ["Content-Type"],
-             "supports_credentials": False
+             "supports_credentials": False,
+             "max_age": 3600
          }}
     )
     
-    # Agregar headers CORS manualmente para asegurar compatibilidad
+    # Agregar headers CORS manualmente para asegurar compatibilidad total
     @app.after_request
     def after_request(response):
         response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With,Accept'
         response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
         response.headers['Access-Control-Max-Age'] = '3600'
         return response
