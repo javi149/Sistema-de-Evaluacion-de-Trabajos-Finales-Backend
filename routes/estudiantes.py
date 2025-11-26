@@ -2,11 +2,11 @@ from flask import Blueprint, jsonify, request
 from database import db
 from models.estudiantes import Estudiante
 
-# Creamos el Blueprint
-estudiantes_bp = Blueprint('estudiantes', __name__)
+# Creamos el Blueprint con url_prefix consistente con otras rutas
+estudiantes_bp = Blueprint('estudiantes', __name__, url_prefix='/estudiantes')
 
-# --- RUTA CORREGIDA: /api/estudiantes ---
-@estudiantes_bp.route('/api/estudiantes', methods=['GET', 'POST'])
+# --- RUTA: /estudiantes ---
+@estudiantes_bp.route('/', methods=['GET', 'POST'])
 def gestionar_estudiantes():
     # 1. CREAR (POST)
     if request.method == 'POST':
