@@ -1,6 +1,8 @@
 import os
-from flask import Flask, request, make_response
+
+from flask import Flask
 from flask_cors import CORS
+
 from config.config import ConfiguracionGlobal
 from database import db
 
@@ -10,14 +12,12 @@ try:
 except ImportError:
     pass
 
-# --- Función Auxiliar para construir la URL de la Base de Datos ---
+
 def _build_db_uri():
-    # 1. Si existe la URL completa en .env (Railway), úsala.
     direct_uri = os.getenv('DATABASE_URL')
     if direct_uri:
         return direct_uri
 
-    # 2. Si no, intenta armarla con partes (Usuario, Pass, Host...)
     user = os.getenv('DB_USER')
     password = os.getenv('DB_PASSWORD')
     host = os.getenv('DB_HOST')
@@ -27,10 +27,45 @@ def _build_db_uri():
 
     if all([user, password, host, dbname]):
         port_section = f":{port}" if port else ""
+        return f"{driver}://{user}:{password}@{host}{port_section}/{dbname}"
+
+    return 'sqlite:///evaluacion.db'
+
+
+def create_app():
+    app = Flask(__name__)
+
+    # Configuración de Base de Datos
+    db_uri = _build_db_uri()
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(app)
     ConfiguracionGlobal()
 
-    # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
+    # Habilitar CORS (Permite que React se conecte)
+    CORS(app, 
+         resources={r"/*": {
+             "origins": "*",
+             "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+             "expose_headers": ["Content-Type"],
+             "supports_credentials": False
+         }}
+    )
     
+    # Agregar headers CORS manualmente para asegurar compatibilidad
+    @app.after_request
+    def after_request(response):
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-Requested-With'
+        response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+        response.headers['Access-Control-Max-Age'] = '3600'
+        return response
+
+    # --- REGISTRO DE RUTAS (BLUEPRINTS) ---
+    # Conectamos cada archivo de la carpeta 'routes' con el sistema principal.
+
     # 1. Estudiantes
     try:
         from routes.estudiantes import estudiantes_bp
@@ -38,7 +73,7 @@ def _build_db_uri():
     except Exception as e:
         print(f"⚠️ Estudiantes no cargado: {e}")
 
-    # 2. Evaluadores
+    # 2. Evaluadores (Docentes)
     try:
         from routes.evaluadores_routes import evaluadores_bp
         app.register_blueprint(evaluadores_bp)
@@ -66,24 +101,22 @@ def _build_db_uri():
     except Exception as e:
         print(f"⚠️ Criterios no cargado: {e}")
 
-    # 6. Evaluaciones
+    # 6. Evaluaciones (Cabecera)
     try:
         from routes.evaluaciones import evaluaciones_bp
         app.register_blueprint(evaluaciones_bp)
     except Exception as e:
         print(f"⚠️ Evaluaciones no cargado: {e}")
 
-    # 7. Detalle de Evaluación
+    # 7. Detalle de Evaluación (Notas por criterio)
     try:
         from routes.evaluacion_detalle import evaluacion_detalle_bp
         app.register_blueprint(evaluacion_detalle_bp)
     except Exception as e:
         print(f"⚠️ Detalle Evaluación no cargado: {e}")
 
-    # 8. Actas (CRUD y Generación)
+    # 8. Actas (CRUD: Crear, Listar, Borrar actas + Generación con Template Method)
     try:
-        # Asegúrate de que este archivo maneje tanto el CRUD como la generación
-        # O si tienes un 'acta_routes.py' separado, agrégalo abajo.
         from routes.actas import actas_bp
         app.register_blueprint(actas_bp)
     except Exception as e:
@@ -104,23 +137,12 @@ def _build_db_uri():
 
     return app
 
-# --- Inicialización ---
-app = crear_app()
+# --- Configuración Global ---
+app = create_app()
 
-# Crear tablas si no existen
+# Esto asegura que las tablas existan al iniciar
 with app.app_context():
     db.create_all()
 
-# Mensaje de inicio prolijo
 if __name__ == "__main__":
-    port = int(os.getenv('PORT', 5000))
-    print("\n" + "="*60)
-    print("🚀  SISTEMA DE EVALUACIÓN - BACKEND INICIADO")
-    print("="*60)
-    print(f"📡  URL Local:   http://localhost:{port}")
-    # Ocultamos la contraseña de la DB en el print por seguridad
-    db_name = app.config['SQLALCHEMY_DATABASE_URI'].split('/')[-1]
-    print(f"🗄️   Base de Datos: {db_name}")
-    print("="*60 + "\n")
-    
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(debug=True)
