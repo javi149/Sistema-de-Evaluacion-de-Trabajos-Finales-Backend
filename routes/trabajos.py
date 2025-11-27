@@ -8,7 +8,7 @@ from factories.trabajo_factory import TrabajoFactory
 
 trabajos_bp = Blueprint('trabajos', __name__, url_prefix='/trabajos')
 
-# LISTAR TODOS (Esto queda igual)
+# LISTAR TODOS
 @trabajos_bp.route('/', methods=['GET'])
 def listar_trabajos():
     trabajos = Trabajo.query.all()
@@ -20,11 +20,13 @@ def listar_trabajos():
         "requisito_aprobacion": t.requisito_aprobacion,
         "resumen": t.resumen,
         "fecha_entrega": t.fecha_entrega.isoformat() if t.fecha_entrega else None,
-        "estudiante_id": t.estudiante_id
+        "estudiante_id": t.estudiante_id,
+        "estado": t.estado,
+        "tipo_id": t.tipo_id
     } for t in trabajos]
     return jsonify(resultado)
 
-# OBTENER UNO POR ID (Esto queda igual)
+# OBTENER UNO POR ID
 @trabajos_bp.route('/<int:id>', methods=['GET'])
 def obtener_trabajo(id):
     trabajo = Trabajo.query.get_or_404(id)
@@ -36,7 +38,9 @@ def obtener_trabajo(id):
         "requisito_aprobacion": trabajo.requisito_aprobacion,
         "resumen": trabajo.resumen,
         "fecha_entrega": trabajo.fecha_entrega.isoformat() if trabajo.fecha_entrega else None,
-        "estudiante_id": trabajo.estudiante_id
+        "estudiante_id": trabajo.estudiante_id,
+        "estado": trabajo.estado,
+        "tipo_id": trabajo.tipo_id
     })
 
 # --- AQUÍ ESTÁ LA INTEGRACIÓN DE TU FACTORY (POST) ---
@@ -78,8 +82,9 @@ def crear_trabajo():
         nota_aprobacion=configuracion['nota_aprobacion'],
         requisito_aprobacion=configuracion['requisito'],
         
-        # Opcional: Guardamos el nombre del tipo si tienes esa columna
-        # tipo_id=data.get('tipo_id') 
+        # Guardamos el tipo_id y estado
+        tipo_id=data.get('tipo_id'),
+        estado=data.get('estado', 'pendiente')
     )
 
     try:
@@ -121,6 +126,12 @@ def actualizar_trabajo(id):
         except ValueError:
             return jsonify({"error": "Formato de fecha inválido"}), 400
             
+    if data.get('estado'):
+        trabajo.estado = data.get('estado')
+        
+    if data.get('tipo_id'):
+        trabajo.tipo_id = data.get('tipo_id')
+            
     db.session.commit()
     return jsonify({
         "mensaje": "Trabajo actualizado exitosamente",
@@ -147,7 +158,9 @@ def listar_trabajos_por_estudiante(estudiante_id):
         "requisito_aprobacion": t.requisito_aprobacion,
         "resumen": t.resumen,
         "fecha_entrega": t.fecha_entrega.isoformat() if t.fecha_entrega else None,
-        "estudiante_id": t.estudiante_id
+        "estudiante_id": t.estudiante_id,
+        "estado": t.estado,
+        "tipo_id": t.tipo_id
     } for t in trabajos]
     return jsonify(resultado)
 

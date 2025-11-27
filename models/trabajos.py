@@ -12,10 +12,9 @@ class Trabajo(db.Model):
     
     resumen = db.Column(db.Text)
     fecha_entrega = db.Column(db.Date)
-
-    duracion_meses = db.Column(db.Integer)
-    nota_aprobacion = db.Column(db.Float)
-    requisito_aprobacion = db.Column(db.String(255))
+    
+    # Nuevo campo estado
+    estado = db.Column(db.String(50), default='pendiente') # pendiente, aprobado, rechazado, etc.
 
     # Claves Foráneas
     tipo_id = db.Column(db.Integer, ForeignKey('tipos_trabajo.id'))
