@@ -54,7 +54,7 @@ def crear_evaluador():
             nombre=data.get('nombre'),
             email=data.get('email'),
             rol=perfil['rol'],
-            tipo=perfil['tipo']
+            tipo=perfil['tipo_oficial'] # CORREGIDO: Usar 'tipo_oficial' que es lo que devuelve la fábrica
         )
         
         db.session.add(nuevo)
@@ -84,7 +84,7 @@ def actualizar_evaluador(id):
         perfil = EvaluadorFactory.crear_perfil(data.get('tipo'))
         if perfil:
             evaluador.rol = perfil['rol']
-            evaluador.tipo = perfil['tipo']
+            evaluador.tipo = perfil['tipo_oficial'] # CORREGIDO TAMBIÉN AQUÍ
     
     if data.get('nombre'):
         evaluador.nombre = data.get('nombre')
