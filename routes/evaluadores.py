@@ -72,7 +72,7 @@ def crear_evaluador():
         return jsonify({"error": f"Error interno del servidor: {str(e)}"}), 500
 
 # ACTUALIZAR COMPLETO (PUT)
-@evaluadores_bp.route('/<int:id>', methods=['PUT'])
+@evaluadores_bp.route('/<int:id>', methods=['PUT', 'PATCH'])
 def actualizar_evaluador(id):
     evaluador = Evaluador.query.get_or_404(id)
     data = request.get_json()
