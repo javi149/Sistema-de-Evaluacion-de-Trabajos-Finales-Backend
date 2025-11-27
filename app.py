@@ -77,7 +77,7 @@ def create_app():
 
     # 2. Evaluadores (Docentes)
     try:
-        from routes.evaluadores_routes import evaluadores_bp
+        from routes.evaluadores import evaluadores_bp
         app.register_blueprint(evaluadores_bp)
     except Exception as e:
         print(f"⚠️ Evaluadores no cargado: {e}")
@@ -91,7 +91,7 @@ def create_app():
 
     # 4. Trabajos
     try:
-        from routes.trabajos_routes import trabajos_bp
+        from routes.trabajos import trabajos_bp
         app.register_blueprint(trabajos_bp)
     except Exception as e:
         print(f"⚠️ Trabajos no cargado: {e}")
