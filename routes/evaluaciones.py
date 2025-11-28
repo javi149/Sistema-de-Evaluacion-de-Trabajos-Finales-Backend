@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from database import db
-from models import Evaluacion
+from models import Evaluacion, EvaluacionDetalle
 from datetime import datetime
 
 evaluaciones_bp = Blueprint('evaluaciones', __name__, url_prefix='/evaluaciones')
@@ -25,28 +25,69 @@ def registrar_evaluacion():
     if not data:
         return jsonify({"error": "No se recibieron datos JSON"}), 400
     
-    # Validaciones
+    # Validaciones básicas
     if not data.get('trabajo_id'):
         return jsonify({"error": "El trabajo_id es requerido"}), 400
+    if not data.get('evaluador_id'):
+        return jsonify({"error": "El evaluador_id es requerido"}), 400
     
-    fecha_evaluacion = None
-    if data.get('fecha_evaluacion'):
-        try:
-            fecha_evaluacion = datetime.strptime(data.get('fecha_evaluacion'), '%Y-%m-%d').date()
-        except ValueError:
-            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
-    
-    nueva = Evaluacion(
-        trabajo_id=data.get('trabajo_id'),
-        evaluador_id=data.get('evaluador_id'),
-        nota_final=data.get('nota_final'),
-        comentarios=data.get('comentarios'),
-        fecha_evaluacion=fecha_evaluacion
-    )
-    
-    db.session.add(nueva)
-    db.session.commit()
-    return jsonify({"mensaje": "Evaluación registrada exitosamente", "id": nueva.id}), 201
+    try:
+        # 1. Buscar si ya existe la cabecera de evaluación
+        evaluacion = Evaluacion.query.filter_by(
+            trabajo_id=data.get('trabajo_id'),
+            evaluador_id=data.get('evaluador_id')
+        ).first()
+
+        # Si no existe, la creamos
+        if not evaluacion:
+            fecha_evaluacion = datetime.now().date()
+            if data.get('fecha_evaluacion'):
+                try:
+                    fecha_evaluacion = datetime.strptime(data.get('fecha_evaluacion'), '%Y-%m-%d').date()
+                except ValueError:
+                    pass # Usamos fecha actual si falla
+
+            evaluacion = Evaluacion(
+                trabajo_id=data.get('trabajo_id'),
+                evaluador_id=data.get('evaluador_id'),
+                fecha_evaluacion=fecha_evaluacion,
+                nota_final=data.get('nota_final') # Opcional al inicio
+            )
+            db.session.add(evaluacion)
+            db.session.flush() # Para obtener el ID
+
+        # 2. Si vienen datos de detalle (Criterio y Nota), registramos el detalle
+        if data.get('criterio_id') and data.get('nota') is not None:
+            # Verificar si ya existe calificación para este criterio en esta evaluación
+            detalle = EvaluacionDetalle.query.filter_by(
+                evaluacion_id=evaluacion.id,
+                criterio_id=data.get('criterio_id')
+            ).first()
+
+            if detalle:
+                # Actualizar existente
+                detalle.nota = data.get('nota')
+                detalle.comentarios = data.get('observacion') or data.get('comentarios')
+            else:
+                # Crear nuevo detalle
+                detalle = EvaluacionDetalle(
+                    evaluacion_id=evaluacion.id,
+                    criterio_id=data.get('criterio_id'),
+                    nota=data.get('nota'),
+                    comentarios=data.get('observacion') or data.get('comentarios')
+                )
+                db.session.add(detalle)
+
+        db.session.commit()
+        return jsonify({
+            "mensaje": "Evaluación registrada/actualizada exitosamente", 
+            "id": evaluacion.id,
+            "detalle_registrado": bool(data.get('criterio_id'))
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al registrar evaluación: {str(e)}"}), 500
 
 # OBTENER UNO POR ID
 @evaluaciones_bp.route('/<int:id>', methods=['GET'])

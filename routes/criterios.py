@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from database import db
 from models import Criterio
+from sqlalchemy.exc import IntegrityError
 
 criterios_bp = Blueprint('criterios', __name__, url_prefix='/criterios')
 
@@ -94,6 +95,13 @@ def actualizar_criterio_parcial(id):
 @criterios_bp.route('/<int:id>', methods=['DELETE'])
 def eliminar_criterio(id):
     criterio = Criterio.query.get_or_404(id)
-    db.session.delete(criterio)
-    db.session.commit()
-    return jsonify({"mensaje": "Criterio eliminado exitosamente"})
+    try:
+        db.session.delete(criterio)
+        db.session.commit()
+        return jsonify({"mensaje": "Criterio eliminado exitosamente"})
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "No se puede eliminar el criterio porque está siendo utilizado en una o más evaluaciones."}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
