@@ -81,7 +81,7 @@ def listar_actas():
         'trabajo_id': a.trabajo_id,
         'fecha': a.fecha.isoformat() if a.fecha else None,
         'url_pdf': a.url_pdf,
-        'estado': a.estado
+        'estado': a.estado.value if hasattr(a.estado, 'value') else a.estado
     } for a in actas]
     return jsonify(resultado)
 

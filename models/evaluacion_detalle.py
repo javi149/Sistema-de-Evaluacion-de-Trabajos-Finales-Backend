@@ -21,7 +21,7 @@ class EvaluacionDetalle(db.Model):
     
     evaluacion = db.relationship(
         'Evaluacion', 
-        backref=db.backref('detalles', lazy=True)
+        backref=db.backref('detalles', lazy=True, cascade="all, delete-orphan")
     )
 
     def __init__(self, evaluacion_id, criterio_id, nota, comentarios=None):
