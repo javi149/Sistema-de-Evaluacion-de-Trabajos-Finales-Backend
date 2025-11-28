@@ -1,7 +1,7 @@
 import unittest
 import json
 from app import app, db
-from models import Trabajo
+
 
 class TestTrabajoErrors(unittest.TestCase):
     def setUp(self):
@@ -15,37 +15,32 @@ class TestTrabajoErrors(unittest.TestCase):
         db.session.remove()
         self.app_context.pop()
 
-    def test_create_trabajo_no_tipo(self):
-        """Test creating a work without 'tipo' field (simulating frontend)"""
+    def test_create_and_delete_trabajo(self):
+        """Test creating a work and then deleting it"""
+        # 1. Create
         payload = {
-            "titulo": "Tesis de Prueba",
-            "resumen": "Resumen de prueba",
-            "estudiante_id": 1, # Assuming student 1 exists or validation is loose
-            "fecha_entrega": "2025-12-01",
-            "duracion_meses": 10,
-            "nota_aprobacion": 5.0,
-            "requisito": "si"
+            "titulo": "Tesis de Prueba Exitosa",
+            "resumen": "Resumen de prueba exitosa",
+            "estudiante_id": 1, 
+            "tipo_id": 1, # Assuming type 1 exists
+            "fecha_entrega": "2025-12-01"
         }
         response = self.app.post('/trabajos/', json=payload)
         print(f"\nCreate Response Status: {response.status_code}")
         print(f"Create Response Body: {response.get_json()}")
-        # Currently expecting 400 because 'tipo' is missing
-        if response.status_code == 400:
-            print("Confirmed: 400 Error reproduced (Missing 'tipo')")
-        else:
-            print(f"Unexpected status: {response.status_code}")
+        
+        self.assertEqual(response.status_code, 201)
+        data = response.get_json()
+        trabajo_id = data['id']
+        print(f"Created Trabajo ID: {trabajo_id}")
 
-    def test_get_trabajos_500(self):
-        """Test fetching works to see if 500 occurs"""
-        response = self.app.get('/trabajos/')
-        print(f"\nGet Response Status: {response.status_code}")
-        # Currently expecting 500 if there's bad data or 200 if empty/fine
-        if response.status_code == 500:
-            print("Confirmed: 500 Error reproduced")
-        elif response.status_code == 200:
-            print("Get works: Success (No 500 error found yet)")
-        else:
-            print(f"Unexpected status: {response.status_code}")
+        # 2. Delete
+        response_delete = self.app.delete(f'/trabajos/{trabajo_id}')
+        print(f"Delete Response Status: {response_delete.status_code}")
+        print(f"Delete Response Body: {response_delete.get_json()}")
+        
+        self.assertEqual(response_delete.status_code, 200)
+        print("Delete successful (No 500 error)")
 
 if __name__ == '__main__':
     unittest.main()

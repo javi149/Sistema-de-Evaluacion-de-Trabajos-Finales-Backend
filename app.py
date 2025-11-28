@@ -73,63 +73,63 @@ def create_app():
         from routes.estudiantes import estudiantes_bp
         app.register_blueprint(estudiantes_bp)
     except Exception as e:
-        print(f"⚠️ Estudiantes no cargado: {e}")
+        print(f"WARNING: Estudiantes no cargado: {e}")
 
     # 2. Evaluadores (Docentes)
     try:
         from routes.evaluadores import evaluadores_bp
         app.register_blueprint(evaluadores_bp)
     except Exception as e:
-        print(f"⚠️ Evaluadores no cargado: {e}")
+        print(f"WARNING: Evaluadores no cargado: {e}")
 
     # 3. Tipos de Trabajo
     try:
         from routes.tipos_trabajo import tipos_trabajo_bp
         app.register_blueprint(tipos_trabajo_bp)
     except Exception as e:
-        print(f"⚠️ Tipos de Trabajo no cargado: {e}")
+        print(f"WARNING: Tipos de Trabajo no cargado: {e}")
 
     # 4. Trabajos
     try:
         from routes.trabajos import trabajos_bp
         app.register_blueprint(trabajos_bp)
     except Exception as e:
-        print(f"⚠️ Trabajos no cargado: {e}")
+        print(f"WARNING: Trabajos no cargado: {e}")
 
     # 5. Criterios
     try:
         from routes.criterios import criterios_bp
         app.register_blueprint(criterios_bp)
     except Exception as e:
-        print(f"⚠️ Criterios no cargado: {e}")
+        print(f"WARNING: Criterios no cargado: {e}")
 
     # 6. Evaluaciones (Cabecera)
     try:
         from routes.evaluaciones import evaluaciones_bp
         app.register_blueprint(evaluaciones_bp)
     except Exception as e:
-        print(f"⚠️ Evaluaciones no cargado: {e}")
+        print(f"WARNING: Evaluaciones no cargado: {e}")
 
     # 7. Detalle de Evaluación (Notas por criterio)
     try:
         from routes.evaluacion_detalle import evaluacion_detalle_bp
         app.register_blueprint(evaluacion_detalle_bp)
     except Exception as e:
-        print(f"⚠️ Detalle Evaluación no cargado: {e}")
+        print(f"WARNING: Detalle Evaluación no cargado: {e}")
 
     # 8. Actas (CRUD: Crear, Listar, Borrar actas + Generación con Template Method)
     try:
         from routes.actas import actas_bp
         app.register_blueprint(actas_bp)
     except Exception as e:
-        print(f"⚠️ Actas no cargado: {e}")
+        print(f"WARNING: Actas no cargado: {e}")
 
     # 9. Cálculo de Notas
     try:
         from routes.notas_routes import notas_bp
         app.register_blueprint(notas_bp)
     except Exception as e:
-        print(f"⚠️ Cálculo de Notas no cargado: {e}")
+        print(f"WARNING: Cálculo de Notas no cargado: {e}")
 
     # --------------------------------------------------
 

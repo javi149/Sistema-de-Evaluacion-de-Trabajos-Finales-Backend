@@ -1,12 +1,55 @@
 from flask import Blueprint, jsonify, request
 from database import db
-# IMPORTANTE: Revisa si tu modelo se llama 'Trabajo' o 'Trabajos' y ajusta esta línea
-from models import Trabajo 
+from models import trabajos, TipoTrabajo
 from datetime import datetime
-# 1. IMPORTAMOS TU FÁBRICA
 from factories.trabajo_factory import TrabajoFactory
 
 trabajos_bp = Blueprint('trabajos', __name__, url_prefix='/trabajos')
+
+# CREAR TRABAJO
+@trabajos_bp.route('/', methods=['POST'])
+def crear_trabajo():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No se recibieron datos JSON"}), 400
+
+    # Validar campos obligatorios
+    if not data.get('titulo') or not data.get('estudiante_id') or not data.get('tipo_id'):
+        return jsonify({"error": "Faltan campos obligatorios (titulo, estudiante_id, tipo_id)"}), 400
+
+    try:
+        # Obtener el nombre del tipo de trabajo para la fábrica
+        tipo_trabajo = TipoTrabajo.query.get(data.get('tipo_id'))
+        if not tipo_trabajo:
+             return jsonify({"error": "Tipo de trabajo no válido"}), 400
+
+        # Usar la fábrica para obtener la configuración
+        configuracion = TrabajoFactory.crear_configuracion(tipo_trabajo.nombre)
+        
+        nuevo_trabajo = Trabajo(
+            titulo=data.get('titulo'),
+            resumen=data.get('resumen'),
+            estudiante_id=data.get('estudiante_id'),
+            tipo_id=data.get('tipo_id'),
+            fecha_entrega=datetime.strptime(data.get('fecha_entrega'), '%Y-%m-%d').date() if data.get('fecha_entrega') else None,
+            # Campos configurados por la fábrica
+            duracion_meses=configuracion['duracion_meses'] if configuracion else 6,
+            nota_aprobacion=configuracion['nota_aprobacion'] if configuracion else 4.0,
+            requisito_aprobacion=configuracion['requisito'] if configuracion else "Cumplir requisitos estándar",
+            estado='pendiente'
+        )
+
+        db.session.add(nuevo_trabajo)
+        db.session.commit()
+
+        return jsonify({
+            "mensaje": "Trabajo creado exitosamente",
+            "id": nuevo_trabajo.id
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al crear trabajo: {str(e)}"}), 500
 
 # LISTAR TODOS
 @trabajos_bp.route('/', methods=['GET'])
@@ -80,7 +123,7 @@ def actualizar_trabajo(id):
         "id": trabajo.id
     })
 
-# ELIMINAR (Igual que antes)
+# ELIMINAR
 @trabajos_bp.route('/<int:id>', methods=['DELETE'])
 def eliminar_trabajo(id):
     trabajo = Trabajo.query.get_or_404(id)
