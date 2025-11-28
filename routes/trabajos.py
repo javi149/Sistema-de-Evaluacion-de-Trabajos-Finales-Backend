@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from database import db
-from models import trabajos, TipoTrabajo
+from models import Trabajo, TipoTrabajo
 from datetime import datetime
 from factories.trabajo_factory import TrabajoFactory
 

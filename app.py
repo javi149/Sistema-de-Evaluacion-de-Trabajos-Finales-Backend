@@ -69,11 +69,8 @@ def create_app():
     # Conectamos cada archivo de la carpeta 'routes' con el sistema principal.
 
     # 1. Estudiantes
-    try:
-        from routes.estudiantes import estudiantes_bp
-        app.register_blueprint(estudiantes_bp)
-    except Exception as e:
-        print(f"WARNING: Estudiantes no cargado: {e}")
+    from routes.estudiantes import estudiantes_bp
+    app.register_blueprint(estudiantes_bp)
 
     # 2. Evaluadores (Docentes)
     try:
@@ -90,11 +87,8 @@ def create_app():
         print(f"WARNING: Tipos de Trabajo no cargado: {e}")
 
     # 4. Trabajos
-    try:
-        from routes.trabajos import trabajos_bp
-        app.register_blueprint(trabajos_bp)
-    except Exception as e:
-        print(f"WARNING: Trabajos no cargado: {e}")
+    from routes.trabajos import trabajos_bp
+    app.register_blueprint(trabajos_bp)
 
     # 5. Criterios
     try:
