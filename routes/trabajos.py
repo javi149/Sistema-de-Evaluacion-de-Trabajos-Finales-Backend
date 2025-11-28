@@ -38,67 +38,9 @@ def obtener_trabajo(id):
         "requisito_aprobacion": trabajo.requisito_aprobacion,
         "resumen": trabajo.resumen,
         "fecha_entrega": trabajo.fecha_entrega.isoformat() if trabajo.fecha_entrega else None,
-        "estudiante_id": trabajo.estudiante_id,
-        "estado": trabajo.estado,
-        "tipo_id": trabajo.tipo_id
     })
 
-# --- AQUÍ ESTÁ LA INTEGRACIÓN DE TU FACTORY (POST) ---
-@trabajos_bp.route('/', methods=['POST'])
-def crear_trabajo():
-    data = request.get_json()
-    
-    if not data:
-        return jsonify({"error": "No se recibieron datos JSON"}), 400
-    
-    # Validamos datos mínimos
-    if not data.get('titulo') or not data.get('tipo'):
-        return jsonify({"error": "El título y el tipo (tesis, proyecto...) son requeridos"}), 400
-    
-    # 2. USAMOS TU FACTORY
-    # En lugar de leer la duración del JSON, la calculamos con tu fábrica
-    configuracion = TrabajoFactory.crear_configuracion(data.get('tipo'))
-    
-    if not configuracion:
-        return jsonify({"error": "Tipo de trabajo inválido. Use: tesis, proyecto, seminario"}), 400
-
-    # Manejo de fecha (igual que antes)
-    fecha_entrega = None
-    if data.get('fecha_entrega'):
-        try:
-            fecha_entrega = datetime.strptime(data.get('fecha_entrega'), '%Y-%m-%d').date()
-        except ValueError:
-            return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
-    
-    # 3. CREAMOS EL OBJETO CON TUS REGLAS
-    nuevo = Trabajo(
-        titulo=data.get('titulo'),
-        estudiante_id=data.get('estudiante_id'),
-        resumen=data.get('resumen'),
-        fecha_entrega=fecha_entrega,
-        
-        # Aquí inyectamos lo que decidió tu Factory:
-        duracion_meses=configuracion['duracion_meses'],
-        nota_aprobacion=configuracion['nota_aprobacion'],
-        requisito_aprobacion=configuracion['requisito'],
-        
-        # Guardamos el tipo_id y estado
-        tipo_id=data.get('tipo_id'),
-        estado=data.get('estado', 'pendiente')
-    )
-
-    try:
-        db.session.add(nuevo)
-        db.session.commit()
-        return jsonify({
-            "mensaje": "Trabajo registrado exitosamente con configuración automática",
-            "configuracion_aplicada": configuracion, # Para que vean que tu factory funcionó
-            "id": nuevo.id
-        }), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ACTUALIZAR COMPLETO (PUT) - También lo integramos por si cambian el tipo
+# ACTUALIZAR
 @trabajos_bp.route('/<int:id>', methods=['PUT'])
 def actualizar_trabajo(id):
     trabajo = Trabajo.query.get_or_404(id)
