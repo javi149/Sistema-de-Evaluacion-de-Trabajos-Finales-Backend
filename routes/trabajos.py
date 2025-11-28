@@ -13,29 +13,44 @@ def crear_trabajo():
     if not data:
         return jsonify({"error": "No se recibieron datos JSON"}), 400
 
-    # Validar campos obligatorios
-    if not data.get('titulo') or not data.get('estudiante_id') or not data.get('tipo_id'):
-        return jsonify({"error": "Faltan campos obligatorios (titulo, estudiante_id, tipo_id)"}), 400
+    # Validar campos obligatorios (tipo_id ya no es obligatorio si se envían los datos manuales)
+    if not data.get('titulo') or not data.get('estudiante_id'):
+        return jsonify({"error": "Faltan campos obligatorios (titulo, estudiante_id)"}), 400
 
     try:
-        # Obtener el nombre del tipo de trabajo para la fábrica
-        tipo_trabajo = TipoTrabajo.query.get(data.get('tipo_id'))
-        if not tipo_trabajo:
-             return jsonify({"error": "Tipo de trabajo no válido"}), 400
-
-        # Usar la fábrica para obtener la configuración
-        configuracion = TrabajoFactory.crear_configuracion(tipo_trabajo.nombre)
+        # Valores por defecto o desde la fábrica si existe tipo_id
+        duracion = 6
+        nota = 4.0
+        requisito = "Cumplir requisitos estándar"
         
+        if data.get('tipo_id'):
+            tipo_trabajo = TipoTrabajo.query.get(data.get('tipo_id'))
+            if tipo_trabajo:
+                configuracion = TrabajoFactory.crear_configuracion(tipo_trabajo.nombre)
+                if configuracion:
+                    duracion = configuracion['duracion_meses']
+                    nota = configuracion['nota_aprobacion']
+                    requisito = configuracion['requisito']
+
+        # Sobrescribir con valores manuales si vienen del frontend
+        if data.get('duracion_meses'):
+            duracion = data.get('duracion_meses')
+        if data.get('nota_aprobacion'):
+            nota = data.get('nota_aprobacion')
+        if data.get('requisito'): # El frontend puede enviar 'requisito'
+            requisito = data.get('requisito')
+        elif data.get('requisito_aprobacion'):
+             requisito = data.get('requisito_aprobacion')
+
         nuevo_trabajo = Trabajo(
             titulo=data.get('titulo'),
             resumen=data.get('resumen'),
             estudiante_id=data.get('estudiante_id'),
-            tipo_id=data.get('tipo_id'),
+            tipo_id=data.get('tipo_id'), # Puede ser None
             fecha_entrega=datetime.strptime(data.get('fecha_entrega'), '%Y-%m-%d').date() if data.get('fecha_entrega') else None,
-            # Campos configurados por la fábrica
-            duracion_meses=configuracion['duracion_meses'] if configuracion else 6,
-            nota_aprobacion=configuracion['nota_aprobacion'] if configuracion else 4.0,
-            requisito_aprobacion=configuracion['requisito'] if configuracion else "Cumplir requisitos estándar",
+            duracion_meses=duracion,
+            nota_aprobacion=nota,
+            requisito_aprobacion=requisito,
             estado='pendiente'
         )
 
@@ -81,6 +96,9 @@ def obtener_trabajo(id):
         "requisito_aprobacion": trabajo.requisito_aprobacion,
         "resumen": trabajo.resumen,
         "fecha_entrega": trabajo.fecha_entrega.isoformat() if trabajo.fecha_entrega else None,
+        "estudiante_id": trabajo.estudiante_id,
+        "tipo_id": trabajo.tipo_id,
+        "estado": trabajo.estado
     })
 
 # ACTUALIZAR
@@ -92,13 +110,26 @@ def actualizar_trabajo(id):
     if not data:
         return jsonify({"error": "No se recibieron datos JSON"}), 400
     
-    # Si cambian el tipo de trabajo, debemos recalcular las reglas
-    if data.get('tipo'):
-        configuracion = TrabajoFactory.crear_configuracion(data.get('tipo'))
-        if configuracion:
-            trabajo.duracion_meses = configuracion['duracion_meses']
-            trabajo.nota_aprobacion = configuracion['nota_aprobacion']
-            trabajo.requisito_aprobacion = configuracion['requisito']
+    # Si cambian el tipo de trabajo, aplicamos configuración base, pero permitimos sobrescribir
+    if data.get('tipo_id'): # Corregido de 'tipo' a 'tipo_id' para consistencia
+        trabajo.tipo_id = data.get('tipo_id')
+        tipo_obj = TipoTrabajo.query.get(trabajo.tipo_id)
+        if tipo_obj:
+            configuracion = TrabajoFactory.crear_configuracion(tipo_obj.nombre)
+            if configuracion:
+                trabajo.duracion_meses = configuracion['duracion_meses']
+                trabajo.nota_aprobacion = configuracion['nota_aprobacion']
+                trabajo.requisito_aprobacion = configuracion['requisito']
+
+    # Actualización manual de campos (sobrescribe la fábrica si se envían)
+    if data.get('duracion_meses') is not None:
+        trabajo.duracion_meses = data.get('duracion_meses')
+    if data.get('nota_aprobacion') is not None:
+        trabajo.nota_aprobacion = data.get('nota_aprobacion')
+    if data.get('requisito') is not None:
+        trabajo.requisito_aprobacion = data.get('requisito')
+    elif data.get('requisito_aprobacion') is not None:
+        trabajo.requisito_aprobacion = data.get('requisito_aprobacion')
 
     if data.get('titulo'):
         trabajo.titulo = data.get('titulo')
@@ -113,9 +144,6 @@ def actualizar_trabajo(id):
             
     if data.get('estado'):
         trabajo.estado = data.get('estado')
-        
-    if data.get('tipo_id'):
-        trabajo.tipo_id = data.get('tipo_id')
             
     db.session.commit()
     return jsonify({
