@@ -1,7 +1,12 @@
 from database import db
 from sqlalchemy.schema import ForeignKey
-# Importamos Enum si tu base de datos soporta ENUM, si no, usa String
-from sqlalchemy.dialects.mysql import ENUM 
+import enum
+
+# Definimos los estados posibles como un Enum de Python
+class EstadoActa(enum.Enum):
+    APROBADO = 'APROBADO'
+    REPROBADO = 'REPROBADO'
+    PENDIENTE = 'PENDIENTE'
 
 class Acta(db.Model):
     __tablename__ = 'actas'
@@ -12,5 +17,7 @@ class Acta(db.Model):
     fecha = db.Column(db.DateTime)
     url_pdf = db.Column(db.String(255))
     
-    # Estado como ENUM (Aprobado/Reprobado/Pendiente)
-    estado = db.Column(ENUM('APROBADO', 'REPROBADO', 'PENDIENTE'))
+    # Estado usando Enum de SQLAlchemy
+    # native_enum=False hace que funcione en SQLite (usa VARCHAR)
+    # En MySQL/PostgreSQL usará ENUM nativo para mejor rendimiento
+    estado = db.Column(db.Enum(EstadoActa, native_enum=False, length=20))
