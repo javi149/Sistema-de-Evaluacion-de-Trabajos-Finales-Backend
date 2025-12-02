@@ -10,4 +10,3 @@ from models.evaluaciones import Evaluacion
 from models.evaluacion_detalle import EvaluacionDetalle
 from models.actas import Acta
 
-# Si en el futuro agregan más tablas, deben agregarlas aquí.

@@ -10,10 +10,8 @@ from patterns.acta_texto import ActaTexto
 
 actas_bp = Blueprint('actas', __name__, url_prefix='/actas')
 
+#  eneración de actas (Template Method)
 
-# =============================================================================
-#  Generación de actas (Template Method)
-# =============================================================================
 
 def _obtener_datos_para_patron(trabajo_id):
     """Prepara la data cruda para alimentar los generadores de actas."""
@@ -69,9 +67,7 @@ def generar_acta_texto(trabajo_id):
     return response
 
 
-# =============================================================================
 #  CRUD de Actas
-# =============================================================================
 
 @actas_bp.route('/', methods=['GET'])
 def listar_actas():
